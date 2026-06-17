@@ -1,10 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
 import { emmetHTML } from "emmet-monaco-es";
-import { format } from "prettier/standalone";
-import * as htmlPlugin from "prettier/plugins/html";
-import * as estreePlugin from "prettier/plugins/estree";
-import * as babelPlugin from "prettier/plugins/babel";
 import { Code, Save, Sparkles, Moon, Sun, Map, Copy, Maximize2, Minimize2, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
@@ -267,7 +263,14 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
 
     const handleFormat = async () => {
         try {
-            const formatted = await format(code, {
+            const [prettier, htmlPlugin, estreePlugin, babelPlugin] = await Promise.all([
+                import("prettier/standalone"),
+                import("prettier/plugins/html"),
+                import("prettier/plugins/estree"),
+                import("prettier/plugins/babel")
+            ]);
+
+            const formatted = await prettier.format(code, {
                 parser: settings.language === "html" ? "html" : "babel",
                 plugins: [htmlPlugin as any, estreePlugin as any, babelPlugin as any],
                 printWidth: 100,
