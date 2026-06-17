@@ -67,16 +67,8 @@ export function parseClasses(className: string = '', breakpoint: Breakpoint = ''
         const clsBreakpoint = hasBreakpoint ? cls.split(':')[0] + ':' : '';
 
         if (breakpoint && clsBreakpoint !== breakpoint) {
-            if (!clsBreakpoint) {
-                // Base class, only include if we're looking for base
-                if (breakpoint !== '') {
-                    parsed.other.push(cls);
-                    continue;
-                }
-            } else {
-                parsed.other.push(cls);
-                continue;
-            }
+            parsed.other.push(cls);
+            continue;
         }
 
         const normalizedCls = hasBreakpoint ? cls.split(':').slice(1).join(':') : cls;
