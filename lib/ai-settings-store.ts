@@ -16,12 +16,42 @@ const STORAGE_PREFIX = "tailwindeditor_";
 const KEY_STORAGE = `${STORAGE_PREFIX}api_key_encrypted`;
 const SETTINGS_STORAGE = `${STORAGE_PREFIX}ai_settings`;
 const CRYPTO_SALT = "tailwindeditor-byok-v1";
+const DEVICE_SALT_STORAGE = `${STORAGE_PREFIX}device_salt`;
+
+function getDeviceSalt(): string {
+    if (typeof window === "undefined") return CRYPTO_SALT;
+    let salt = localStorage.getItem(DEVICE_SALT_STORAGE);
+    if (!salt) {
+        salt = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        localStorage.setItem(DEVICE_SALT_STORAGE, salt);
+    }
+    return salt;
+}
+
+function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+function base64ToBuffer(base64: string): Uint8Array {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
 
 async function deriveEncryptionKey(): Promise<CryptoKey> {
     const encoder = new TextEncoder();
+    const deviceSalt = getDeviceSalt();
     const keyMaterial = await crypto.subtle.importKey(
         "raw",
-        encoder.encode(CRYPTO_SALT + navigator.userAgent.slice(0, 32)),
+        encoder.encode(CRYPTO_SALT + deviceSalt),
         "PBKDF2",
         false,
         ["deriveKey"]
@@ -50,27 +80,27 @@ async function encryptApiKey(apiKey: string): Promise<string> {
             key,
             encoder.encode(apiKey)
         );
-        // Combine IV + encrypted data into a single base64 string
-        const combined = new Uint8Array(iv.length + new Uint8Array(encrypted).length);
+        // Combine IV + encrypted data into a single array
+        const combined = new Uint8Array(iv.length + encrypted.byteLength);
         combined.set(iv);
         combined.set(new Uint8Array(encrypted), iv.length);
-        return btoa(String.fromCharCode(...combined));
-    } catch {
-        // Fallback: base64 encode (for environments where crypto.subtle is unavailable)
-        return btoa(apiKey);
+        return "enc_" + bufferToBase64(combined);
+    } catch (error) {
+        console.error("Encryption failed:", error);
+        throw new Error("Failed to secure API key. Please ensure you are using a secure context (HTTPS).");
     }
 }
 
 async function decryptApiKey(encryptedData: string): Promise<string> {
     try {
+        const isPrefixed = encryptedData.startsWith("enc_");
+        const base64Data = isPrefixed ? encryptedData.slice(4) : encryptedData;
+
         const key = await deriveEncryptionKey();
-        const combined = new Uint8Array(
-            atob(encryptedData)
-                .split("")
-                .map((c) => c.charCodeAt(0))
-        );
+        const combined = base64ToBuffer(base64Data);
         const iv = combined.slice(0, 12);
         const data = combined.slice(12);
+        
         const decrypted = await crypto.subtle.decrypt(
             { name: "AES-GCM", iv },
             key,
@@ -78,9 +108,14 @@ async function decryptApiKey(encryptedData: string): Promise<string> {
         );
         return new TextDecoder().decode(decrypted);
     } catch {
-        // Fallback: try base64 decode
+        // Fallback: try base64 decode if decryption fails (for legacy keys or userAgent changes)
         try {
-            return atob(encryptedData);
+            const base64Data = encryptedData.startsWith("enc_") ? encryptedData.slice(4) : encryptedData;
+            const decoded = atob(base64Data);
+            if (/^[\x20-\x7E\r\n\t]*$/.test(decoded)) {
+                return decoded;
+            }
+            return "";
         } catch {
             return "";
         }
