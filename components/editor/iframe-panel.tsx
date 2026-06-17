@@ -1232,6 +1232,19 @@ const generateIframeScript = (mode: "edit" | "preview"): string => {
     document.addEventListener('keydown', handleKeyDown, true);
     document.addEventListener('keydown', handleEditKeyDown, true);
     
+    // Update visuals on window resize and scroll to prevent bounding box distortion
+    window.addEventListener('resize', () => {
+        if (MODE === 'edit' && (currentSelectedElement || currentHoveredElement)) {
+            requestAnimationFrame(updateVisuals);
+        }
+    });
+    
+    window.addEventListener('scroll', () => {
+        if (MODE === 'edit' && (currentSelectedElement || currentHoveredElement)) {
+            requestAnimationFrame(updateVisuals);
+        }
+    }, { passive: true });
+    
     // Listen for messages from parent
     window.addEventListener('message', (event) => {
         const { type, value, builderId, newClasses, newText, newId, newStyle } = event.data || {};
