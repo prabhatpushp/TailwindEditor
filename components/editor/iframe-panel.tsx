@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { FileCode, RotateCcw, Copy, RefreshCw, Check, Save, Flag, X, Undo2, Trash2, ExternalLink, Plus, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, openInNewTab } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ToolbarButton } from "@/components/editor/toolbar-button";
 import { INITIAL_CODE } from "@/lib/constants";
@@ -2257,10 +2257,7 @@ export function IframePanel() {
     };
 
     const handleOpenInNewTab = () => {
-        const cleanCode = getCleanCode();
-        const blob = new Blob([cleanCode], { type: "text/html" });
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+        openInNewTab(getCleanCode());
     };
 
     const handleSave = async () => {
