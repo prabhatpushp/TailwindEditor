@@ -11,7 +11,19 @@ Build, design, and edit web interfaces visually with real-time preview, drag-and
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 
+**[🌐 Live Website](https://tailwindeditor.com)** • **[💻 GitHub Repository](https://github.com/prabhatpushp/tailwindeditor)**
+
+<br />
+
+<img src="./public/images/og-image.png" alt="Tailwind Editor" width="100%" />
+
 </div>
+
+---
+
+## 📸 Screenshot
+
+<img src="./public/images/Screenshot.png" alt="Tailwind Editor Screenshot" width="100%" />
 
 ---
 
