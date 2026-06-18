@@ -16,7 +16,7 @@ import { Eye, EyeOff, KeyRound, Sparkles, RotateCcw, ExternalLink, ShieldCheck, 
 
 const AVAILABLE_MODELS = [
     { value: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite", description: "Fast" },
-    { value: "gemini-3-flash-preview", label: "Gemini 3.1 Flash Preview", description: "Capable" },
+    { value: "gemini-3-flash-preview", label: "Gemini 3.0 Flash Preview", description: "Capable" },
 ];
 
 export function AISettingsDialog() {

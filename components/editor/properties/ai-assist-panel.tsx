@@ -32,7 +32,7 @@ function extractHtmlFromResponse(text: string): string | null {
 
     // Try raw HTML (if the response looks like HTML without code fences)
     const trimmed = text.trim();
-    if (trimmed.startsWith("<!") || trimmed.startsWith("<html") || trimmed.startsWith("<head") || trimmed.startsWith("<body") || trimmed.startsWith("<div")) {
+    if (trimmed.startsWith("<!") || trimmed.startsWith("<html") || trimmed.startsWith("<head") || trimmed.startsWith("<body") || trimmed.startsWith("<div") || trimmed.startsWith("</div")) {
         if (trimmed.length > 10) return trimmed;
     }
 
@@ -40,7 +40,7 @@ function extractHtmlFromResponse(text: string): string | null {
 }
 
 export function AiAssistPanel() {
-    const { setCode } = useEditorStore();
+    const { setCode, setIsGenerating } = useEditorStore();
     const { apiKey, hasApiKey, isKeyLoaded, loadApiKey, openSettingsDialog, systemPrompt, temperature, maxOutputTokens, model, topP, topK } = useAISettingsStore();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -181,10 +181,11 @@ export function AiAssistPanel() {
 
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
+        let fullResponse = "";
 
         try {
             setStatus("streaming");
-            let fullResponse = "";
+            setIsGenerating(true);
 
             const settings = { systemPrompt, temperature, maxOutputTokens, model, topP, topK };
 
@@ -210,6 +211,11 @@ export function AiAssistPanel() {
                 }
             }
 
+            // Enforce that a complete generation MUST contain an closing html tag
+            if (!fullResponse.toLowerCase().includes("</html>")) {
+                throw new Error("The AI abruptly stopped generating. Please click retry to continue building.");
+            }
+
             // Streaming complete — sync final code to Monaco editor
             const finalCode = extractHtmlFromResponse(fullResponse);
             if (finalCode) {
@@ -218,17 +224,34 @@ export function AiAssistPanel() {
             }
 
             setStatus("ready");
+            setIsGenerating(false);
         } catch (err) {
+            // Attempt to salvage any partially generated code
+            const partialCode = extractHtmlFromResponse(fullResponse);
+            if (partialCode) {
+                try {
+                    setCode(partialCode);
+                    sendToIframe(partialCode, true);
+                } catch (e) {
+                    console.warn("Failed to sync partial code to iframe:", e);
+                }
+            }
+
             if (abortController.signal.aborted) {
                 setStatus("ready");
+                setIsGenerating(false);
                 return;
             }
+            
             const friendlyError = classifyError(err);
             setError(friendlyError);
             setStatus("error");
+            setIsGenerating(false);
 
-            // Remove the empty assistant message on error
-            setMessages((prev) => prev.filter((m) => m.content.length > 0 || m.role === "user"));
+            // Only remove the assistant message if we didn't generate any code
+            if (!partialCode) {
+                setMessages((prev) => prev.filter((m) => m.content.length > 0 || m.role === "user"));
+            }
 
             // Reset to ready after a moment so user can retry
             setTimeout(() => setStatus("ready"), 100);
@@ -263,9 +286,13 @@ export function AiAssistPanel() {
     };
 
     const handleRetry = () => {
-        const lastUserMsg = messages[messages.length - 1];
-        if (lastUserMsg && lastUserMsg.role === "user") {
-            const previousHistory = messages.slice(0, -1);
+        // Find the last user message index
+        const lastUserMsgIndex = messages.map(m => m.role).lastIndexOf("user");
+        
+        if (lastUserMsgIndex !== -1) {
+            const lastUserMsg = messages[lastUserMsgIndex];
+            // Slice the history up to the user message
+            const previousHistory = messages.slice(0, lastUserMsgIndex);
             setMessages(previousHistory);
             sendMessage(lastUserMsg.content, previousHistory);
         }

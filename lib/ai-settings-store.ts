@@ -100,7 +100,7 @@ async function decryptApiKey(encryptedData: string): Promise<string> {
         const combined = base64ToBuffer(base64Data);
         const iv = combined.slice(0, 12);
         const data = combined.slice(12);
-        
+
         const decrypted = await crypto.subtle.decrypt(
             { name: "AES-GCM", iv },
             key,
@@ -158,16 +158,17 @@ export interface AISettingsState extends AISettings {
 // =============================================================================
 
 export const DEFAULT_SETTINGS: AISettings = {
-    systemPrompt: `You are a helpful AI assistant for a visual Tailwind CSS editor. Use tailwind css V4 using <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> in head tag.
-When the user asks you to build or modify UI, respond ONLY with the complete HTML code.
-Do NOT include any explanation, markdown formatting, or code fences.
-Your response should be raw HTML that can be directly rendered in a browser.
-Use Tailwind CSS classes for styling.
-Provide clear, well-commented code.
-Offer accessible, modern design suggestions.`,
+    systemPrompt: `You are a helpful AI assistant for a visual Tailwind CSS editor. Use tailwind css V4 using <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> in head tag. 
+    Please use font-awesome icons <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" /> . DO NOT USE SVG FOR ICONS.
+    When the user asks you to build or modify UI, respond ONLY with the complete HTML code.
+    Do NOT include any explanation, markdown formatting, or code fences.
+    Your response should be raw HTML that can be directly rendered in a browser.
+    Use Tailwind CSS classes for styling.
+    Provide clear, well-commented code.
+    Offer accessible, modern design suggestions.`,
     temperature: 1,
     maxOutputTokens: 65536,
-    model: "gemini-3.1-flash-lite",
+    model: "gemini-3-flash-preview",
     topP: 0.95,
     topK: 40,
 };

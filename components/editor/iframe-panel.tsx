@@ -1865,10 +1865,35 @@ const generateIframeScript = (mode: "edit" | "preview"): string => {
 `;
 };
 
-// Inject script into HTML
-const injectMessageListener = (html: string, mode: "edit" | "preview"): string => {
+// Inject script into HTML safely, handling incomplete HTML cases
+const injectMessageListener = (html: string, mode: "edit" | "preview", isGenerating: boolean): string => {
+    // DO NOT inject builder UI/scripts if the AI is currently generating code!
+    if (isGenerating) return html;
+
     const script = generateIframeScript(mode);
 
+    // Safely inject script using DOMParser to avoid breaking if the HTML is incomplete
+    // (e.g., if the AI stopped mid-tag like `<div class="flex`)
+    if (typeof window !== "undefined" && typeof DOMParser !== "undefined") {
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+
+            const tempContainer = doc.createElement("div");
+            tempContainer.innerHTML = script;
+
+            while (tempContainer.firstChild) {
+                doc.body.appendChild(tempContainer.firstChild);
+            }
+
+            const hasDoctype = html.trim().toLowerCase().startsWith("<!doctype html>");
+            return (hasDoctype ? "<!DOCTYPE html>\n" : "") + doc.documentElement.outerHTML;
+        } catch (e) {
+            console.warn("DOMParser failed to inject script, falling back to string replacement", e);
+        }
+    }
+
+    // Fallback for SSR or if parsing fails
     if (html.includes("</body>")) {
         return html.replace("</body>", `${script}</body>`);
     } else if (html.includes("</html>")) {
@@ -1895,6 +1920,7 @@ export function IframePanel() {
         setSelectedElement,
         setElementPositions,
         activeBreakpoint,
+        isGenerating,
     } = useEditorStore();
 
     const { undo, redo } = useEditorContext();
@@ -1999,26 +2025,26 @@ export function IframePanel() {
     const checkpointBtnRef = useRef<HTMLDivElement>(null);
 
     // Prepare HTML for iframe - code already has builder IDs, just inject the script
-    const prepareHtmlForIframe = useCallback((html: string, currentMode: "edit" | "preview") => {
+    const prepareHtmlForIframe = useCallback((html: string, currentMode: "edit" | "preview", generating: boolean) => {
         // Code already has builder IDs from the store
-        // Just inject the builder script
-        return injectMessageListener(html, currentMode);
+        // Just inject the builder script (unless generating)
+        return injectMessageListener(html, currentMode, generating);
     }, []);
 
-    const [srcDoc, setSrcDoc] = useState(() => prepareHtmlForIframe(code, mode));
+    const [srcDoc, setSrcDoc] = useState(() => prepareHtmlForIframe(code, mode, isGenerating));
     const srcDocCodeRef = useRef<string>(code);
 
-    // Update srcDoc when refresh or mode changes
+    // Update srcDoc when refresh, mode, or generating state changes
     useEffect(() => {
-        setSrcDoc(prepareHtmlForIframe(code, mode));
+        setSrcDoc(prepareHtmlForIframe(code, mode, isGenerating));
         srcDocCodeRef.current = code;
         setHoveredElement(null);
         setSelectedElement(null);
-    }, [refreshKey, mode, prepareHtmlForIframe]);
+    }, [refreshKey, mode, isGenerating, prepareHtmlForIframe]);
 
     // Send updates via postMessage for streaming (full document updates)
     useEffect(() => {
-        if (code === srcDocCodeRef.current) return;
+        if (code === srcDocCodeRef.current && !isGenerating) return;
 
         // Check if this is a class-only update (handled separately for no-flash update)
         if (lastClassUpdate) {
@@ -2052,14 +2078,14 @@ export function IframePanel() {
             iframeRef.current.contentWindow.postMessage(
                 {
                     type: "html-update",
-                    value: prepareHtmlForIframe(code, mode),
+                    value: prepareHtmlForIframe(code, mode, isGenerating),
                 },
                 "*"
             );
             // Update ref to prevent feedback loop
             srcDocCodeRef.current = code;
         }
-    }, [code, mode, prepareHtmlForIframe, lastClassUpdate, lastTextUpdate, lastIdUpdate, lastStyleUpdate]);
+    }, [code, mode, isGenerating, prepareHtmlForIframe, lastClassUpdate, lastTextUpdate, lastIdUpdate, lastStyleUpdate]);
 
     // Send targeted class updates to iframe (no document reload, no flashing)
     useEffect(() => {
@@ -2629,6 +2655,7 @@ export function IframePanel() {
                         title="preview"
                         srcDoc={srcDoc}
                         sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"
+                        suppressHydrationWarning={true}
                     />
 
                     {/* Drag overlay - transparent overlay to capture drag events */}

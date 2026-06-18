@@ -74,6 +74,9 @@ interface EditorState {
     // Active responsive breakpoint for Tailwind classes (null = full width preview)
     activeBreakpoint: Breakpoint | null;
     setActiveBreakpoint: (breakpoint: Breakpoint | null) => void;
+    // Track if AI is currently generating content
+    isGenerating: boolean;
+    setIsGenerating: (isGenerating: boolean) => void;
 }
 
 // Initialize the code with builder IDs
@@ -176,6 +179,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     // Active responsive breakpoint (null = full width)
     activeBreakpoint: null,
     setActiveBreakpoint: (breakpoint) => set({ activeBreakpoint: breakpoint }),
+    // Track if AI is currently generating content
+    isGenerating: false,
+    setIsGenerating: (isGenerating) => set({ isGenerating }),
     // Update element classes in code
     updateElementClasses: (builderId, newClasses) => {
         const { code, selectedElement, selectedElements } = get();
