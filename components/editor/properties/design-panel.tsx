@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
     Monitor,
     Tablet,
@@ -118,6 +118,71 @@ const NavIconButton = ({
         </TooltipContent>
     </Tooltip>
 );
+
+// Editable slider value — click the label to type a value manually (Figma-style UX)
+const EditableSliderValue = ({
+    value,
+    suffix = "",
+    min,
+    max,
+    onCommit,
+}: {
+    value: number;
+    suffix?: string;
+    min: number;
+    max: number;
+    onCommit: (val: number) => void;
+}) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [inputValue, setInputValue] = useState(String(value));
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!isEditing) setInputValue(String(value));
+    }, [value, isEditing]);
+
+    useEffect(() => {
+        if (isEditing && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+        }
+    }, [isEditing]);
+
+    const commit = () => {
+        setIsEditing(false);
+        const num = parseInt(inputValue, 10);
+        if (!isNaN(num)) {
+            const clamped = Math.max(min, Math.min(max, num));
+            onCommit(clamped);
+        }
+    };
+
+    if (isEditing) {
+        return (
+            <input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onBlur={commit}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") commit();
+                    if (e.key === "Escape") setIsEditing(false);
+                }}
+                className="w-10 h-5 text-[10px] text-center bg-card border border-brand/50 rounded-sm outline-none text-foreground font-medium tabular-nums"
+            />
+        );
+    }
+
+    return (
+        <button
+            onClick={() => setIsEditing(true)}
+            className="w-8 text-[10px] text-muted-foreground text-right cursor-text hover:text-brand transition-colors tabular-nums"
+            title="Click to edit"
+        >
+            {value}{suffix}
+        </button>
+    );
+};
 
 // Tailwind color hex values has been moved to color-picker.tsx modules or are self-contained
 // Local ColorPicker component has been replaced by the imported version
@@ -859,7 +924,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("opacity", vals[0] !== 100 ? `opacity-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{opacityValue}%</span>
+                                <EditableSliderValue value={opacityValue} suffix="%" min={0} max={100} onCommit={(v) => { setOpacityValue(v); updateClasses("opacity", v !== 100 ? `opacity-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1148,7 +1213,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("brightness", vals[0] !== 100 ? `brightness-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{brightnessValue}%</span>
+                                <EditableSliderValue value={brightnessValue} suffix="%" min={0} max={200} onCommit={(v) => { setBrightnessValue(v); updateClasses("brightness", v !== 100 ? `brightness-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1163,7 +1228,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("contrast", vals[0] !== 100 ? `contrast-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{contrastValue}%</span>
+                                <EditableSliderValue value={contrastValue} suffix="%" min={0} max={200} onCommit={(v) => { setContrastValue(v); updateClasses("contrast", v !== 100 ? `contrast-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1178,7 +1243,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("saturate", vals[0] !== 100 ? `saturate-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{saturateValue}%</span>
+                                <EditableSliderValue value={saturateValue} suffix="%" min={0} max={200} onCommit={(v) => { setSaturateValue(v); updateClasses("saturate", v !== 100 ? `saturate-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1193,7 +1258,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("hueRotate", vals[0] !== 0 ? `hue-rotate-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{hueValue}°</span>
+                                <EditableSliderValue value={hueValue} suffix="°" min={0} max={360} onCommit={(v) => { setHueValue(v); updateClasses("hueRotate", v !== 0 ? `hue-rotate-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1234,7 +1299,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("rotate", vals[0] !== 0 ? `rotate-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateValue}°</span>
+                                <EditableSliderValue value={rotateValue} suffix="°" min={-180} max={180} onCommit={(v) => { setRotateValue(v); updateClasses("rotate", v !== 0 ? `rotate-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1249,7 +1314,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("scale", vals[0] !== 100 ? `scale-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{scaleValue}%</span>
+                                <EditableSliderValue value={scaleValue} suffix="%" min={0} max={200} onCommit={(v) => { setScaleValue(v); updateClasses("scale", v !== 100 ? `scale-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1264,7 +1329,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("skewX", vals[0] !== 0 ? `skew-x-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{skewXValue}°</span>
+                                <EditableSliderValue value={skewXValue} suffix="°" min={-45} max={45} onCommit={(v) => { setSkewXValue(v); updateClasses("skewX", v !== 0 ? `skew-x-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1279,7 +1344,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("skewY", vals[0] !== 0 ? `skew-y-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{skewYValue}°</span>
+                                <EditableSliderValue value={skewYValue} suffix="°" min={-45} max={45} onCommit={(v) => { setSkewYValue(v); updateClasses("skewY", v !== 0 ? `skew-y-${v}` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1314,7 +1379,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("rotateX3d", vals[0] !== 0 ? `[transform:rotateX(${vals[0]}deg)]` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateXValue}°</span>
+                                <EditableSliderValue value={rotateXValue} suffix="°" min={-180} max={180} onCommit={(v) => { setRotateXValue(v); updateClasses("rotateX3d", v !== 0 ? `[transform:rotateX(${v}deg)]` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1329,7 +1394,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("rotateY3d", vals[0] !== 0 ? `[transform:rotateY(${vals[0]}deg)]` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateYValue}°</span>
+                                <EditableSliderValue value={rotateYValue} suffix="°" min={-180} max={180} onCommit={(v) => { setRotateYValue(v); updateClasses("rotateY3d", v !== 0 ? `[transform:rotateY(${v}deg)]` : ""); }} />
                             </div>
                         </PropertyRow>
 
@@ -1344,7 +1409,7 @@ export function DesignPanel() {
                                     onValueCommit={(vals) => updateClasses("rotateZ3d", vals[0] !== 0 ? `[transform:rotateZ(${vals[0]}deg)]` : "")}
                                     className="flex-1"
                                 />
-                                <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateZValue}°</span>
+                                <EditableSliderValue value={rotateZValue} suffix="°" min={-180} max={180} onCommit={(v) => { setRotateZValue(v); updateClasses("rotateZ3d", v !== 0 ? `[transform:rotateZ(${v}deg)]` : ""); }} />
                             </div>
                         </PropertyRow>
 
