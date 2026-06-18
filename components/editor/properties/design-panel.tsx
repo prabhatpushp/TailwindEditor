@@ -270,7 +270,6 @@ export function DesignPanel() {
     );
 
     // Computed values from parsed classes
-    const layoutType = parsedClasses.display === "grid" ? "Grid" : "Stack";
     const layoutDirection = parsedClasses.flexDirection === "row" || parsedClasses.flexDirection === "row-reverse" ? "Horizontal" : "Vertical";
     const justifyContent = parsedClasses.justifyContent || "start";
     const alignItems = parsedClasses.alignItems || "stretch";
@@ -319,6 +318,17 @@ export function DesignPanel() {
     const isUnderline = parsedClasses.textDecoration === "underline";
     const isStrikethrough = parsedClasses.textDecoration === "line-through";
     const textTransform = parsedClasses.textTransform || "";
+
+    // Filter toggles — derive from raw className for reliability
+    const rawClasses = (selectedElement?.className || "").split(/\s+/);
+    const isGrayscale = rawClasses.includes("grayscale");
+    const isInvert = rawClasses.includes("invert");
+    const isSepia = rawClasses.includes("sepia");
+
+    // 3D Transform states
+    const hasPreserve3d = rawClasses.includes("[transform-style:preserve-3d]");
+    const hasBackfaceHidden = rawClasses.includes("backface-hidden");
+    const hasBackfaceVisible = rawClasses.includes("backface-visible");
 
     // No element selected state
     const hasSelection = selectedElement !== null || selectedElements.length > 0;
@@ -568,30 +578,22 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="display">
-                            <div className="flex bg-muted rounded p-0.5 w-[120px]">
-                                <button
-                                    onClick={() => updateClasses(["display", "gridCols", "gridRows", "gridAutoFlow"], "flex")}
-                                    className={cn(
-                                        "flex-1 flex items-center justify-center gap-1 py-1 rounded-sm text-[10px] font-medium transition-all",
-                                        layoutType === "Stack" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
-                                    )}
-                                >
-                                    <Layers className="w-3 h-3" /> flex
-                                </button>
-                                <button
-                                    onClick={() => updateClasses(["display", "flexDirection", "flexWrap", "flex"], "grid")}
-                                    className={cn(
-                                        "flex-1 flex items-center justify-center gap-1 py-1 rounded-sm text-[10px] font-medium transition-all",
-                                        layoutType === "Grid" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
-                                    )}
-                                >
-                                    <Grid className="w-3 h-3" /> grid
-                                </button>
-                            </div>
+                            <Select value={parsedClasses.display || "block"} onValueChange={(val) => updateClasses("display", val === "block" ? "" : val)}>
+                                <SelectTrigger className="w-[120px] h-7 text-[10px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {["block", "inline-block", "inline", "flex", "inline-flex", "grid", "inline-grid", "contents", "hidden"].map((val) => (
+                                        <SelectItem key={val} value={val}>
+                                            {val}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </PropertyRow>
 
                         {/* Grid Options */}
-                        {layoutType === "Grid" && (
+                        {(parsedClasses.display === "grid" || parsedClasses.display === "inline-grid") && (
                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <PropertyRow label="grid-template-columns">
                                     <PropertySelect
@@ -613,6 +615,33 @@ export function DesignPanel() {
                                         allowCustom={false}
                                     />
                                 </PropertyRow>
+                                <PropertyRow label="justify-content">
+                                    <Select value={justifyContent} onValueChange={(val) => updateClasses("justifyContent", `justify-${val}`)}>
+                                        <SelectTrigger className="w-[120px] h-7 text-[10px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="start">start</SelectItem>
+                                            <SelectItem value="center">center</SelectItem>
+                                            <SelectItem value="end">end</SelectItem>
+                                            <SelectItem value="between">space-between</SelectItem>
+                                            <SelectItem value="around">space-around</SelectItem>
+                                            <SelectItem value="evenly">space-evenly</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </PropertyRow>
+                                <PropertyRow label="align-items">
+                                    <div className="flex bg-muted rounded p-0.5 w-[120px]">
+                                        {[
+                                            { id: "start", icon: AlignHorizontalJustifyStart, label: "start" },
+                                            { id: "center", icon: AlignHorizontalJustifyCenter, label: "center" },
+                                            { id: "end", icon: AlignHorizontalJustifyEnd, label: "end" },
+                                            { id: "stretch", icon: AlignJustify, label: "stretch" },
+                                        ].map(({ id, icon: Icon, label }) => (
+                                            <NavIconButton key={id} icon={Icon} tooltip={label} active={alignItems === id} onClick={() => updateClasses("alignItems", `items-${id}`)} />
+                                        ))}
+                                    </div>
+                                </PropertyRow>
                                 <PropertyRow label="gap">
                                     <PropertySelect
                                         value={gap || "0"}
@@ -626,7 +655,7 @@ export function DesignPanel() {
                             </div>
                         )}
 
-                        {layoutType === "Stack" && (
+                        {(parsedClasses.display === "flex" || parsedClasses.display === "inline-flex") && (
                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <PropertyRow label="flex-direction">
                                     <div className="flex bg-muted rounded p-0.5 w-[120px]">
@@ -1021,8 +1050,7 @@ export function DesignPanel() {
                                 <ColorPicker value={""} onChange={(val) => updateClasses("ringColor", val ? `ring-${val}` : "")} label="Ring" />
                             </div>
                         </PropertyRow>
-
-                        {/* Border Side Toggles */}
+                         {/* Border Side Toggles */}
                         <PropertyRow label="border-style">
                             <div className="flex bg-muted rounded p-0.5">
                                 {[
@@ -1031,23 +1059,31 @@ export function DesignPanel() {
                                     { id: "r", label: "R" },
                                     { id: "b", label: "B" },
                                     { id: "l", label: "L" },
-                                ].map(({ id, label }) => (
-                                    <Tooltip key={id} disableHoverableContent>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => updateClasses("borderWidth", id === "all" ? "border" : `border-${id}`)}
-                                                className="h-6 px-2 text-[9px] font-medium rounded-sm text-muted-foreground hover:text-brand hover:bg-muted/50"
-                                            >
-                                                {label}
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" className="text-xs">
-                                            {id === "all" ? "All sides" : `Border ${label}`}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ))}
+                                ].map(({ id, label }) => {
+                                    const isActive = id === "all"
+                                        ? rawClasses.includes("border")
+                                        : rawClasses.includes(`border-${id}`);
+                                    return (
+                                        <Tooltip key={id} disableHoverableContent>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => updateClasses("borderWidth", id === "all" ? "border" : `border-${id}`)}
+                                                    className={cn(
+                                                        "h-6 px-2 text-[9px] font-medium rounded-sm transition-all",
+                                                        isActive ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
+                                                    )}
+                                                >
+                                                    {label}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="text-xs">
+                                                {id === "all" ? "All sides" : `Border ${label}`}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
                             </div>
                         </PropertyRow>
                     </div>
@@ -1164,9 +1200,9 @@ export function DesignPanel() {
                         {/* Filter toggles */}
                         <PropertyRow label="filter">
                             <div className="flex bg-muted rounded p-0.5">
-                                <NavIconButton icon={Contrast} tooltip="Grayscale" onClick={() => updateClasses("grayscale", "grayscale")} />
-                                <NavIconButton icon={Eclipse} tooltip="Invert" onClick={() => updateClasses("invert", "invert")} />
-                                <NavIconButton icon={Sun} tooltip="Sepia" onClick={() => updateClasses("sepia", "sepia")} />
+                                <NavIconButton icon={Contrast} tooltip="Grayscale" active={isGrayscale} onClick={() => updateClasses("grayscale", isGrayscale ? "" : "grayscale")} />
+                                <NavIconButton icon={Eclipse} tooltip="Invert" active={isInvert} onClick={() => updateClasses("invert", isInvert ? "" : "invert")} />
+                                <NavIconButton icon={Sun} tooltip="Sepia" active={isSepia} onClick={() => updateClasses("sepia", isSepia ? "" : "sepia")} />
                             </div>
                         </PropertyRow>
                     </div>
@@ -1330,10 +1366,10 @@ export function DesignPanel() {
                         <PropertyRow label="transform-style">
                             <div className="flex bg-muted rounded p-0.5 w-[120px]">
                                 <button
-                                    onClick={() => updateClasses("transformStyle", "[transform-style:preserve-3d]")}
+                                    onClick={() => updateClasses("transformStyle", hasPreserve3d ? "" : "[transform-style:preserve-3d]")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
-                                        "text-muted-foreground hover:text-brand hover:bg-muted/50"
+                                        hasPreserve3d ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
                                     )}
                                 >
                                     Enable
@@ -1342,7 +1378,7 @@ export function DesignPanel() {
                                     onClick={() => updateClasses("transformStyle", "")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
-                                        "text-muted-foreground hover:text-brand hover:bg-muted/50"
+                                        !hasPreserve3d ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
                                     )}
                                 >
                                     Flat
@@ -1353,19 +1389,19 @@ export function DesignPanel() {
                         <PropertyRow label="backface-visibility">
                             <div className="flex bg-muted rounded p-0.5 w-[120px]">
                                 <button
-                                    onClick={() => updateClasses("backfaceVisibility", "backface-visible")}
+                                    onClick={() => updateClasses("backfaceVisibility", hasBackfaceVisible ? "" : "backface-visible")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
-                                        "text-muted-foreground hover:text-brand hover:bg-muted/50"
+                                        hasBackfaceVisible ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
                                     )}
                                 >
                                     Visible
                                 </button>
                                 <button
-                                    onClick={() => updateClasses("backfaceVisibility", "backface-hidden")}
+                                    onClick={() => updateClasses("backfaceVisibility", hasBackfaceHidden ? "" : "backface-hidden")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
-                                        "text-muted-foreground hover:text-brand hover:bg-muted/50"
+                                        hasBackfaceHidden ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
                                     )}
                                 >
                                     Hidden
