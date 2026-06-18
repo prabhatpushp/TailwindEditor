@@ -15,7 +15,7 @@ Build, design, and edit web interfaces visually with real-time preview, drag-and
 
 <br />
 
-<img src="./public/images/og-image.png" alt="Tailwind Editor" width="100%" />
+<img src="./public/images/og-image.webp" alt="Tailwind Editor" width="100%" />
 
 </div>
 
@@ -95,8 +95,6 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 > **No `.env` setup required!** API keys are configured in the browser via Settings (BYOK model).
-
-
 
 ## 🏗️ Project Structure
 
