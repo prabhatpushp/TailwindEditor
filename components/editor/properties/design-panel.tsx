@@ -79,6 +79,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useEditorStore } from "@/lib/store";
 import { parseClasses, type Breakpoint } from "@/lib/tailwind-utils";
+import { replaceConflictingClasses } from "@/lib/tailwind-conflict-groups";
 
 const NavIconButton = ({
     icon: Icon,
@@ -153,48 +154,18 @@ export function DesignPanel() {
         return parseClasses(selectedElement.className, breakpointForParsing);
     }, [selectedElement?.className, activeBreakpoint]);
 
-    // Simple helper to update classes - replaces classes matching a prefix pattern
+    // Helper to update classes — uses conflict groups to precisely replace matching classes
+    // Accepts a conflict group key (or array of keys) that maps to a regex in CONFLICT_GROUPS.
+    // This prevents duplicate/conflicting classes (e.g., position, font-weight vs font-family).
     const updateClasses = useCallback(
-        (prefix: string, newValue: string) => {
+        (conflictGroup: string | string[], newValue: string) => {
             const elementsToUpdate = selectedElements.length > 0 ? selectedElements : selectedElement ? [selectedElement] : [];
 
             for (const element of elementsToUpdate) {
                 if (!element.builderId) continue;
 
                 const currentClasses = element.className || "";
-                const classArray = currentClasses.split(/\s+/).filter(Boolean);
-
-                // Filter out classes that match the prefix (with or without breakpoint)
-                const filtered = classArray.filter((cls) => {
-                    // Handle breakpoint prefix
-                    let normalizedClass = cls;
-                    if (cls.includes(":")) {
-                        const parts = cls.split(":");
-                        const bp = parts.slice(0, -1).join(":") + ":";
-                        normalizedClass = parts[parts.length - 1];
-                        // If we're targeting a specific breakpoint, only remove that breakpoint's class
-                        if (activeBreakpoint && bp !== activeBreakpoint) {
-                            return true; // Keep classes from other breakpoints
-                        }
-                        if (!activeBreakpoint && bp) {
-                            return true; // Keep breakpoint classes when editing base
-                        }
-                    } else if (activeBreakpoint) {
-                        return true; // Keep base classes when editing a specific breakpoint
-                    }
-
-                    // Check if this class starts with the prefix we're replacing
-                    if (!prefix) return true;
-                    return !normalizedClass.startsWith(prefix);
-                });
-
-                // Add the new class if value is provided
-                if (newValue) {
-                    const fullClass = activeBreakpoint ? `${activeBreakpoint}${newValue}` : newValue;
-                    filtered.push(fullClass);
-                }
-
-                const newClasses = filtered.join(" ");
+                const newClasses = replaceConflictingClasses(currentClasses, conflictGroup, newValue, activeBreakpoint);
                 updateElementClasses(element.builderId, newClasses);
             }
         },
@@ -498,7 +469,7 @@ export function DesignPanel() {
                                 <span className="text-[11px] text-muted-foreground font-medium pl-1 select-none">width</span>
                                 <PropertySelect
                                     value={width}
-                                    onChange={(val) => updateClasses("w-", val ? `w-${val}` : "")}
+                                    onChange={(val) => updateClasses("width", val ? `w-${val}` : "")}
                                     groups={SIZING_OPTIONS}
                                     placeholder="auto"
                                     searchPlaceholder="Search width..."
@@ -508,7 +479,7 @@ export function DesignPanel() {
                                 <span className="text-[11px] text-muted-foreground font-medium pl-1 select-none">height</span>
                                 <PropertySelect
                                     value={height}
-                                    onChange={(val) => updateClasses("h-", val ? `h-${val}` : "")}
+                                    onChange={(val) => updateClasses("height", val ? `h-${val}` : "")}
                                     groups={SIZING_OPTIONS}
                                     placeholder="auto"
                                     searchPlaceholder="Search height..."
@@ -520,7 +491,7 @@ export function DesignPanel() {
                                 <span className="text-[11px] text-muted-foreground font-medium pl-1 select-none">min-width</span>
                                 <PropertySelect
                                     value={minWidth}
-                                    onChange={(val) => updateClasses("min-w-", val ? `min-w-${val}` : "")}
+                                    onChange={(val) => updateClasses("minWidth", val ? `min-w-${val}` : "")}
                                     groups={SIZING_OPTIONS}
                                     placeholder="0"
                                     searchPlaceholder="Search min-width..."
@@ -530,7 +501,7 @@ export function DesignPanel() {
                                 <span className="text-[11px] text-muted-foreground font-medium pl-1 select-none">max-width</span>
                                 <PropertySelect
                                     value={maxWidth}
-                                    onChange={(val) => updateClasses("max-w-", val ? `max-w-${val}` : "")}
+                                    onChange={(val) => updateClasses("maxWidth", val ? `max-w-${val}` : "")}
                                     groups={SIZING_OPTIONS}
                                     placeholder="none"
                                     searchPlaceholder="Search max-width..."
@@ -542,7 +513,7 @@ export function DesignPanel() {
                                 <span className="text-[11px] text-muted-foreground font-medium pl-1 select-none">min-height</span>
                                 <PropertySelect
                                     value={minHeight}
-                                    onChange={(val) => updateClasses("min-h-", val ? `min-h-${val}` : "")}
+                                    onChange={(val) => updateClasses("minHeight", val ? `min-h-${val}` : "")}
                                     groups={SIZING_OPTIONS}
                                     placeholder="0"
                                     searchPlaceholder="Search min-height..."
@@ -552,7 +523,7 @@ export function DesignPanel() {
                                 <span className="text-[11px] text-muted-foreground font-medium pl-1 select-none">max-height</span>
                                 <PropertySelect
                                     value={maxHeight}
-                                    onChange={(val) => updateClasses("max-h-", val ? `max-h-${val}` : "")}
+                                    onChange={(val) => updateClasses("maxHeight", val ? `max-h-${val}` : "")}
                                     groups={SIZING_OPTIONS}
                                     placeholder="none"
                                     searchPlaceholder="Search max-height..."
@@ -570,7 +541,7 @@ export function DesignPanel() {
                                     { id: "scroll", icon: Box, label: "Scroll" },
                                     { id: "auto", icon: Wand2, label: "Auto" },
                                 ].map(({ id, icon: Icon, label }) => (
-                                    <NavIconButton key={id} icon={Icon} tooltip={label} active={overflow === id} onClick={() => updateClasses("overflow-", `overflow-${id}`)} />
+                                    <NavIconButton key={id} icon={Icon} tooltip={label} active={overflow === id} onClick={() => updateClasses("overflow", `overflow-${id}`)} />
                                 ))}
                             </div>
                         </div>
@@ -582,7 +553,7 @@ export function DesignPanel() {
                     <div className="space-y-4">
                         {/* Position Controls - Moved to top */}
                         <PropertyRow label="position">
-                            <Select onValueChange={(val) => updateClasses("static", val)}>
+                            <Select onValueChange={(val) => updateClasses("position", val)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="static" />
                                 </SelectTrigger>
@@ -599,7 +570,7 @@ export function DesignPanel() {
                         <PropertyRow label="display">
                             <div className="flex bg-muted rounded p-0.5 w-[120px]">
                                 <button
-                                    onClick={() => updateClasses("grid", "flex")}
+                                    onClick={() => updateClasses(["display", "gridCols", "gridRows", "gridAutoFlow"], "flex")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center gap-1 py-1 rounded-sm text-[10px] font-medium transition-all",
                                         layoutType === "Stack" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -608,7 +579,7 @@ export function DesignPanel() {
                                     <Layers className="w-3 h-3" /> flex
                                 </button>
                                 <button
-                                    onClick={() => updateClasses("flex", "grid")}
+                                    onClick={() => updateClasses(["display", "flexDirection", "flexWrap", "flex"], "grid")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center gap-1 py-1 rounded-sm text-[10px] font-medium transition-all",
                                         layoutType === "Grid" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -625,7 +596,7 @@ export function DesignPanel() {
                                 <PropertyRow label="grid-template-columns">
                                     <PropertySelect
                                         value={gridColumns}
-                                        onChange={(val) => updateClasses("grid-cols-", `grid-cols-${val}`)}
+                                        onChange={(val) => updateClasses("gridCols", `grid-cols-${val}`)}
                                         groups={GRID_TRACK_OPTIONS}
                                         placeholder="2"
                                         searchPlaceholder="Search columns..."
@@ -635,7 +606,7 @@ export function DesignPanel() {
                                 <PropertyRow label="grid-template-rows">
                                     <PropertySelect
                                         value={gridRows}
-                                        onChange={(val) => updateClasses("grid-rows-", `grid-rows-${val}`)}
+                                        onChange={(val) => updateClasses("gridRows", `grid-rows-${val}`)}
                                         groups={GRID_TRACK_OPTIONS}
                                         placeholder="auto"
                                         searchPlaceholder="Search rows..."
@@ -645,7 +616,7 @@ export function DesignPanel() {
                                 <PropertyRow label="gap">
                                     <PropertySelect
                                         value={gap || "0"}
-                                        onChange={(val) => updateClasses("gap-", val !== "0" ? `gap-${val}` : "")}
+                                        onChange={(val) => updateClasses("gap", val !== "0" ? `gap-${val}` : "")}
                                         groups={GAP_OPTIONS}
                                         placeholder="0"
                                         searchPlaceholder="Search gap..."
@@ -660,7 +631,7 @@ export function DesignPanel() {
                                 <PropertyRow label="flex-direction">
                                     <div className="flex bg-muted rounded p-0.5 w-[120px]">
                                         <button
-                                            onClick={() => updateClasses("flex-", "flex-col")}
+                                            onClick={() => updateClasses("flexDirection", "flex-col")}
                                             className={cn(
                                                 "flex-1 flex items-center justify-center gap-1 py-1 rounded-sm text-[10px] font-medium transition-all",
                                                 layoutDirection === "Vertical" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -669,7 +640,7 @@ export function DesignPanel() {
                                             <ArrowDown className="w-3 h-3" /> column
                                         </button>
                                         <button
-                                            onClick={() => updateClasses("flex-", "flex-row")}
+                                            onClick={() => updateClasses("flexDirection", "flex-row")}
                                             className={cn(
                                                 "flex-1 flex items-center justify-center gap-1 py-1 rounded-sm text-[10px] font-medium transition-all",
                                                 layoutDirection === "Horizontal" ? "bg-card text-brand shadow-sm" : "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -681,7 +652,7 @@ export function DesignPanel() {
                                 </PropertyRow>
 
                                 <PropertyRow label="justify-content">
-                                    <Select value={justifyContent} onValueChange={(val) => updateClasses("justify-", `justify-${val}`)}>
+                                    <Select value={justifyContent} onValueChange={(val) => updateClasses("justifyContent", `justify-${val}`)}>
                                         <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -704,13 +675,13 @@ export function DesignPanel() {
                                             { id: "end", icon: AlignHorizontalJustifyEnd, label: "flex-end" },
                                             { id: "stretch", icon: AlignJustify, label: "stretch" },
                                         ].map(({ id, icon: Icon, label }) => (
-                                            <NavIconButton key={id} icon={Icon} tooltip={label} active={alignItems === id} onClick={() => updateClasses("items-", `items-${id}`)} />
+                                            <NavIconButton key={id} icon={Icon} tooltip={label} active={alignItems === id} onClick={() => updateClasses("alignItems", `items-${id}`)} />
                                         ))}
                                     </div>
                                 </PropertyRow>
 
                                 <PropertyRow label="flex-wrap">
-                                    <Select value={parsedClasses.flexWrap || "nowrap"} onValueChange={(val) => updateClasses("flex-", val === "nowrap" ? "" : `flex-${val}`)}>
+                                    <Select value={parsedClasses.flexWrap || "nowrap"} onValueChange={(val) => updateClasses("flexWrap", val === "nowrap" ? "" : `flex-${val}`)}>
                                         <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -725,7 +696,7 @@ export function DesignPanel() {
                                 <PropertyRow label="gap">
                                     <PropertySelect
                                         value={gap || "0"}
-                                        onChange={(val) => updateClasses("gap-", val !== "0" ? `gap-${val}` : "")}
+                                        onChange={(val) => updateClasses("gap", val !== "0" ? `gap-${val}` : "")}
                                         groups={GAP_OPTIONS}
                                         placeholder="0"
                                         searchPlaceholder="Search gap..."
@@ -761,15 +732,15 @@ export function DesignPanel() {
                                 {marginExpanded ? (
                                     <div className="grid grid-cols-2 gap-1">
                                         {[
-                                            { key: "t", label: "T", value: marginT, prefix: "mt-" },
-                                            { key: "r", label: "R", value: marginR, prefix: "mr-" },
-                                            { key: "b", label: "B", value: marginB, prefix: "mb-" },
-                                            { key: "l", label: "L", value: marginL, prefix: "ml-" },
-                                        ].map(({ key, label, value, prefix }) => (
+                                            { key: "t", label: "T", value: marginT, conflictGroup: "marginTop", classPrefix: "mt-" },
+                                            { key: "r", label: "R", value: marginR, conflictGroup: "marginRight", classPrefix: "mr-" },
+                                            { key: "b", label: "B", value: marginB, conflictGroup: "marginBottom", classPrefix: "mb-" },
+                                            { key: "l", label: "L", value: marginL, conflictGroup: "marginLeft", classPrefix: "ml-" },
+                                        ].map(({ key, label, value, conflictGroup, classPrefix }) => (
                                             <PropertySelect
                                                 key={key}
                                                 value={value}
-                                                onChange={(val) => updateClasses(prefix, val ? `${prefix}${val}` : "")}
+                                                onChange={(val) => updateClasses(conflictGroup, val ? `${classPrefix}${val}` : "")}
                                                 groups={SPACING_OPTIONS}
                                                 placeholder={label}
                                                 triggerWidth="w-[56px]"
@@ -779,7 +750,7 @@ export function DesignPanel() {
                                 ) : (
                                     <PropertySelect
                                         value={parsedClasses.margin?.all || marginT || marginR || marginB || marginL || ""}
-                                        onChange={(val) => updateClasses("m-", val ? `m-${val}` : "")}
+                                        onChange={(val) => updateClasses("marginAll", val ? `m-${val}` : "")}
                                         groups={SPACING_OPTIONS}
                                         placeholder="0"
                                     />
@@ -809,15 +780,15 @@ export function DesignPanel() {
                                 {paddingExpanded ? (
                                     <div className="grid grid-cols-2 gap-1">
                                         {[
-                                            { key: "t", label: "T", value: paddingT, prefix: "pt-" },
-                                            { key: "r", label: "R", value: paddingR, prefix: "pr-" },
-                                            { key: "b", label: "B", value: paddingB, prefix: "pb-" },
-                                            { key: "l", label: "L", value: paddingL, prefix: "pl-" },
-                                        ].map(({ key, label, value, prefix }) => (
+                                            { key: "t", label: "T", value: paddingT, conflictGroup: "paddingTop", classPrefix: "pt-" },
+                                            { key: "r", label: "R", value: paddingR, conflictGroup: "paddingRight", classPrefix: "pr-" },
+                                            { key: "b", label: "B", value: paddingB, conflictGroup: "paddingBottom", classPrefix: "pb-" },
+                                            { key: "l", label: "L", value: paddingL, conflictGroup: "paddingLeft", classPrefix: "pl-" },
+                                        ].map(({ key, label, value, conflictGroup, classPrefix }) => (
                                             <PropertySelect
                                                 key={key}
                                                 value={value}
-                                                onChange={(val) => updateClasses(prefix, val ? `${prefix}${val}` : "")}
+                                                onChange={(val) => updateClasses(conflictGroup, val ? `${classPrefix}${val}` : "")}
                                                 groups={SPACING_OPTIONS}
                                                 placeholder={label}
                                                 triggerWidth="w-[56px]"
@@ -827,7 +798,7 @@ export function DesignPanel() {
                                 ) : (
                                     <PropertySelect
                                         value={parsedClasses.padding?.all || paddingT || paddingR || paddingB || paddingL || ""}
-                                        onChange={(val) => updateClasses("p-", val ? `p-${val}` : "")}
+                                        onChange={(val) => updateClasses("paddingAll", val ? `p-${val}` : "")}
                                         groups={SPACING_OPTIONS}
                                         placeholder="0"
                                     />
@@ -856,7 +827,7 @@ export function DesignPanel() {
                                     max={100}
                                     step={5}
                                     onValueChange={(vals) => setOpacityValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("opacity-", vals[0] !== 100 ? `opacity-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("opacity", vals[0] !== 100 ? `opacity-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{opacityValue}%</span>
@@ -864,7 +835,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="mix-blend-mode">
-                            <Select onValueChange={(val) => updateClasses("mix-blend-", val === "normal" ? "" : `mix-blend-${val}`)}>
+                            <Select onValueChange={(val) => updateClasses("mixBlendMode", val === "normal" ? "" : `mix-blend-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="normal" />
                                 </SelectTrigger>
@@ -879,7 +850,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="cursor">
-                            <Select onValueChange={(val) => updateClasses("cursor-", val === "default" ? "" : `cursor-${val}`)}>
+                            <Select onValueChange={(val) => updateClasses("cursor", val === "default" ? "" : `cursor-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="default" />
                                 </SelectTrigger>
@@ -899,7 +870,7 @@ export function DesignPanel() {
                 <PropertySection title="Typography">
                     <div className="space-y-4">
                         <PropertyRow label="font-family">
-                            <Select value={fontFamily || "sans"} onValueChange={(val) => updateClasses("font-", `font-${val}`)}>
+                            <Select value={fontFamily || "sans"} onValueChange={(val) => updateClasses("fontFamily", `font-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -912,7 +883,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="font-weight">
-                            <Select value={fontWeight || "normal"} onValueChange={(val) => updateClasses("font-", `font-${val}`)}>
+                            <Select value={fontWeight || "normal"} onValueChange={(val) => updateClasses("fontWeight", `font-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -931,7 +902,7 @@ export function DesignPanel() {
                         <PropertyRow label="font-size">
                             <PropertySelect
                                 value={fontSize}
-                                onChange={(val) => updateClasses("text-", val ? `text-${val}` : "")}
+                                onChange={(val) => updateClasses("fontSize", val ? `text-${val}` : "")}
                                 groups={FONT_SIZE_OPTIONS}
                                 placeholder="base"
                                 searchPlaceholder="Search sizes..."
@@ -941,7 +912,7 @@ export function DesignPanel() {
                         <PropertyRow label="line-height">
                             <PropertySelect
                                 value={lineHeight}
-                                onChange={(val) => updateClasses("leading-", val ? `leading-${val}` : "")}
+                                onChange={(val) => updateClasses("lineHeight", val ? `leading-${val}` : "")}
                                 groups={LINE_HEIGHT_OPTIONS}
                                 placeholder="normal"
                                 searchPlaceholder="Search line heights..."
@@ -949,7 +920,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="color">
-                            <ColorPicker value={textColor} onChange={(val) => updateClasses("text-", val ? `text-${val}` : "")} label="Text Color" />
+                            <ColorPicker value={textColor} onChange={(val) => updateClasses("textColor", val ? `text-${val}` : "")} label="Text Color" />
                         </PropertyRow>
 
                         <Separator />
@@ -962,34 +933,26 @@ export function DesignPanel() {
                                     { id: "right", icon: AlignRight, label: "Right" },
                                     { id: "justify", icon: AlignJustify, label: "Justify" },
                                 ].map(({ id, icon: Icon, label }) => (
-                                    <NavIconButton key={id} icon={Icon} tooltip={label} active={textAlign === id} onClick={() => updateClasses("text-", `text-${id}`)} />
+                                    <NavIconButton key={id} icon={Icon} tooltip={label} active={textAlign === id} onClick={() => updateClasses("textAlign", `text-${id}`)} />
                                 ))}
                             </div>
                         </PropertyRow>
 
                         <PropertyRow label="font-style">
                             <div className="flex bg-muted rounded p-0.5 w-[120px]">
-                                <NavIconButton icon={Bold} tooltip="Bold" active={isBold} onClick={() => updateClasses("font-", isBold ? "font-normal" : "font-bold")} />
+                                <NavIconButton icon={Bold} tooltip="Bold" active={isBold} onClick={() => updateClasses("fontWeight", isBold ? "font-normal" : "font-bold")} />
                                 <NavIconButton
                                     icon={Italic}
                                     tooltip="Italic"
                                     active={isItalic}
-                                    onClick={() => {
-                                        const elementsToUpdate = selectedElements.length > 0 ? selectedElements : selectedElement ? [selectedElement] : [];
-                                        for (const element of elementsToUpdate) {
-                                            if (!element.builderId) continue;
-                                            const currentClasses = element.className || "";
-                                            const newClasses = isItalic ? currentClasses.replace(/\s*italic\s*/g, " ").trim() : (currentClasses + " italic").trim();
-                                            updateElementClasses(element.builderId, newClasses);
-                                        }
-                                    }}
+                                    onClick={() => updateClasses("fontStyle", isItalic ? "" : "italic")}
                                 />
-                                <NavIconButton icon={Underline} tooltip="Underline" active={isUnderline} onClick={() => updateClasses("underline", isUnderline ? "" : "underline")} />
+                                <NavIconButton icon={Underline} tooltip="Underline" active={isUnderline} onClick={() => updateClasses("textDecoration", isUnderline ? "" : "underline")} />
                                 <NavIconButton
                                     icon={Strikethrough}
                                     tooltip="Strikethrough"
                                     active={isStrikethrough}
-                                    onClick={() => updateClasses("line-through", isStrikethrough ? "" : "line-through")}
+                                    onClick={() => updateClasses("textDecoration", isStrikethrough ? "" : "line-through")}
                                 />
                             </div>
                         </PropertyRow>
@@ -1006,7 +969,7 @@ export function DesignPanel() {
                                         icon={Icon}
                                         tooltip={label}
                                         active={textTransform === id}
-                                        onClick={() => updateClasses("uppercase", textTransform === id ? "normal-case" : id)}
+                                        onClick={() => updateClasses("textTransform", textTransform === id ? "normal-case" : id)}
                                     />
                                 ))}
                             </div>
@@ -1020,7 +983,7 @@ export function DesignPanel() {
                         <PropertyRow label="border-width">
                             <PropertySelect
                                 value={parsedClasses.borderWidth || ""}
-                                onChange={(val) => updateClasses("border", val === "0" || !val ? "" : val === "1" ? "border" : `border-${val}`)}
+                                onChange={(val) => updateClasses("borderWidth", val === "0" || !val ? "" : val === "1" ? "border" : `border-${val}`)}
                                 groups={BORDER_WIDTH_OPTIONS}
                                 placeholder="0"
                                 searchPlaceholder="Search widths..."
@@ -1028,13 +991,13 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="border-color">
-                            <ColorPicker value={parsedClasses.borderColor || ""} onChange={(val) => updateClasses("border-", val ? `border-${val}` : "")} label="Border" />
+                            <ColorPicker value={parsedClasses.borderColor || ""} onChange={(val) => updateClasses("borderColor", val ? `border-${val}` : "")} label="Border" />
                         </PropertyRow>
 
                         <PropertyRow label="border-radius">
                             <PropertySelect
                                 value={borderRadius || ""}
-                                onChange={(val) => updateClasses("rounded", !val || val === "none" ? "" : val === "" ? "rounded" : `rounded-${val}`)}
+                                onChange={(val) => updateClasses("borderRadius", !val || val === "none" ? "" : val === "" ? "rounded" : `rounded-${val}`)}
                                 groups={BORDER_RADIUS_OPTIONS}
                                 placeholder="none"
                                 searchPlaceholder="Search radius..."
@@ -1043,7 +1006,7 @@ export function DesignPanel() {
 
                         <PropertyRow label="ring">
                             <div className="flex items-center gap-2">
-                                <Select onValueChange={(val) => updateClasses("ring", val === "0" ? "" : val === "1" ? "ring" : `ring-${val}`)}>
+                                <Select onValueChange={(val) => updateClasses("ringWidth", val === "0" ? "" : val === "1" ? "ring" : `ring-${val}`)}>
                                     <SelectTrigger className="w-[70px] h-7 text-[10px]">
                                         <SelectValue placeholder="0" />
                                     </SelectTrigger>
@@ -1055,7 +1018,7 @@ export function DesignPanel() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <ColorPicker value={""} onChange={(val) => updateClasses("ring-", val ? `ring-${val}` : "")} label="Ring" />
+                                <ColorPicker value={""} onChange={(val) => updateClasses("ringColor", val ? `ring-${val}` : "")} label="Ring" />
                             </div>
                         </PropertyRow>
 
@@ -1074,7 +1037,7 @@ export function DesignPanel() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => updateClasses("border", id === "all" ? "border" : `border-${id}`)}
+                                                onClick={() => updateClasses("borderWidth", id === "all" ? "border" : `border-${id}`)}
                                                 className="h-6 px-2 text-[9px] font-medium rounded-sm text-muted-foreground hover:text-brand hover:bg-muted/50"
                                             >
                                                 {label}
@@ -1094,7 +1057,7 @@ export function DesignPanel() {
                 <PropertySection title="Effects">
                     <div className="space-y-4">
                         <PropertyRow label="box-shadow">
-                            <Select onValueChange={(val) => updateClasses("shadow", val === "none" ? "" : `shadow-${val}`)}>
+                            <Select onValueChange={(val) => updateClasses("boxShadow", val === "none" ? "" : `shadow-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="none" />
                                 </SelectTrigger>
@@ -1124,7 +1087,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="backdrop-filter">
-                            <Select onValueChange={(val) => updateClasses("backdrop-blur", val === "none" ? "" : `backdrop-blur-${val}`)}>
+                            <Select onValueChange={(val) => updateClasses("backdropBlur", val === "none" ? "" : `backdrop-blur-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="none" />
                                 </SelectTrigger>
@@ -1146,7 +1109,7 @@ export function DesignPanel() {
                                     max={200}
                                     step={5}
                                     onValueChange={(vals) => setBrightnessValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("brightness-", vals[0] !== 100 ? `brightness-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("brightness", vals[0] !== 100 ? `brightness-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{brightnessValue}%</span>
@@ -1161,7 +1124,7 @@ export function DesignPanel() {
                                     max={200}
                                     step={5}
                                     onValueChange={(vals) => setContrastValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("contrast-", vals[0] !== 100 ? `contrast-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("contrast", vals[0] !== 100 ? `contrast-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{contrastValue}%</span>
@@ -1176,7 +1139,7 @@ export function DesignPanel() {
                                     max={200}
                                     step={5}
                                     onValueChange={(vals) => setSaturateValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("saturate-", vals[0] !== 100 ? `saturate-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("saturate", vals[0] !== 100 ? `saturate-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{saturateValue}%</span>
@@ -1191,7 +1154,7 @@ export function DesignPanel() {
                                     max={360}
                                     step={15}
                                     onValueChange={(vals) => setHueValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("hue-rotate-", vals[0] !== 0 ? `hue-rotate-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("hueRotate", vals[0] !== 0 ? `hue-rotate-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{hueValue}°</span>
@@ -1214,13 +1177,13 @@ export function DesignPanel() {
                     <div className="space-y-4">
                         <PropertyRow label="translate-x">
                             <div className="flex items-center gap-2 w-[120px]">
-                                <Input placeholder="0" className="h-7 text-[10px] text-center" onChange={(e) => updateClasses("translate-x-", e.target.value ? `translate-x-${e.target.value}` : "")} />
+                                <Input placeholder="0" className="h-7 text-[10px] text-center" onChange={(e) => updateClasses("translateX", e.target.value ? `translate-x-${e.target.value}` : "")} />
                             </div>
                         </PropertyRow>
 
                         <PropertyRow label="translate-y">
                             <div className="flex items-center gap-2 w-[120px]">
-                                <Input placeholder="0" className="h-7 text-[10px] text-center" onChange={(e) => updateClasses("translate-y-", e.target.value ? `translate-y-${e.target.value}` : "")} />
+                                <Input placeholder="0" className="h-7 text-[10px] text-center" onChange={(e) => updateClasses("translateY", e.target.value ? `translate-y-${e.target.value}` : "")} />
                             </div>
                         </PropertyRow>
 
@@ -1232,7 +1195,7 @@ export function DesignPanel() {
                                     max={180}
                                     step={15}
                                     onValueChange={(vals) => setRotateValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("rotate-", vals[0] !== 0 ? `rotate-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("rotate", vals[0] !== 0 ? `rotate-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateValue}°</span>
@@ -1247,7 +1210,7 @@ export function DesignPanel() {
                                     max={200}
                                     step={5}
                                     onValueChange={(vals) => setScaleValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("scale-", vals[0] !== 100 ? `scale-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("scale", vals[0] !== 100 ? `scale-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{scaleValue}%</span>
@@ -1262,7 +1225,7 @@ export function DesignPanel() {
                                     max={45}
                                     step={3}
                                     onValueChange={(vals) => setSkewXValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("skew-x-", vals[0] !== 0 ? `skew-x-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("skewX", vals[0] !== 0 ? `skew-x-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{skewXValue}°</span>
@@ -1277,7 +1240,7 @@ export function DesignPanel() {
                                     max={45}
                                     step={3}
                                     onValueChange={(vals) => setSkewYValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("skew-y-", vals[0] !== 0 ? `skew-y-${vals[0]}` : "")}
+                                    onValueCommit={(vals) => updateClasses("skewY", vals[0] !== 0 ? `skew-y-${vals[0]}` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{skewYValue}°</span>
@@ -1285,7 +1248,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="transform-origin">
-                            <Select onValueChange={(val) => updateClasses("origin-", val === "center" ? "" : `origin-${val}`)}>
+                            <Select onValueChange={(val) => updateClasses("transformOrigin", val === "center" ? "" : `origin-${val}`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="center" />
                                 </SelectTrigger>
@@ -1312,7 +1275,7 @@ export function DesignPanel() {
                                     max={180}
                                     step={15}
                                     onValueChange={(vals) => setRotateXValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("[transform:rotateX(", vals[0] !== 0 ? `[transform:rotateX(${vals[0]}deg)]` : "")}
+                                    onValueCommit={(vals) => updateClasses("rotateX3d", vals[0] !== 0 ? `[transform:rotateX(${vals[0]}deg)]` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateXValue}°</span>
@@ -1327,7 +1290,7 @@ export function DesignPanel() {
                                     max={180}
                                     step={15}
                                     onValueChange={(vals) => setRotateYValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("[transform:rotateY(", vals[0] !== 0 ? `[transform:rotateY(${vals[0]}deg)]` : "")}
+                                    onValueCommit={(vals) => updateClasses("rotateY3d", vals[0] !== 0 ? `[transform:rotateY(${vals[0]}deg)]` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateYValue}°</span>
@@ -1342,7 +1305,7 @@ export function DesignPanel() {
                                     max={180}
                                     step={15}
                                     onValueChange={(vals) => setRotateZValue(vals[0])}
-                                    onValueCommit={(vals) => updateClasses("[transform:rotateZ(", vals[0] !== 0 ? `[transform:rotateZ(${vals[0]}deg)]` : "")}
+                                    onValueCommit={(vals) => updateClasses("rotateZ3d", vals[0] !== 0 ? `[transform:rotateZ(${vals[0]}deg)]` : "")}
                                     className="flex-1"
                                 />
                                 <span className="text-[10px] text-muted-foreground w-8 text-right">{rotateZValue}°</span>
@@ -1350,7 +1313,7 @@ export function DesignPanel() {
                         </PropertyRow>
 
                         <PropertyRow label="perspective">
-                            <Select onValueChange={(val) => updateClasses("[perspective:", val === "none" ? "" : `[perspective:${val}px]`)}>
+                            <Select onValueChange={(val) => updateClasses("perspective", val === "none" ? "" : `[perspective:${val}px]`)}>
                                 <SelectTrigger className="w-[120px] h-7 text-[10px]">
                                     <SelectValue placeholder="none" />
                                 </SelectTrigger>
@@ -1367,7 +1330,7 @@ export function DesignPanel() {
                         <PropertyRow label="transform-style">
                             <div className="flex bg-muted rounded p-0.5 w-[120px]">
                                 <button
-                                    onClick={() => updateClasses("[transform-style:", "[transform-style:preserve-3d]")}
+                                    onClick={() => updateClasses("transformStyle", "[transform-style:preserve-3d]")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
                                         "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -1376,7 +1339,7 @@ export function DesignPanel() {
                                     Enable
                                 </button>
                                 <button
-                                    onClick={() => updateClasses("[transform-style:", "")}
+                                    onClick={() => updateClasses("transformStyle", "")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
                                         "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -1390,7 +1353,7 @@ export function DesignPanel() {
                         <PropertyRow label="backface-visibility">
                             <div className="flex bg-muted rounded p-0.5 w-[120px]">
                                 <button
-                                    onClick={() => updateClasses("backface-", "backface-visible")}
+                                    onClick={() => updateClasses("backfaceVisibility", "backface-visible")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
                                         "text-muted-foreground hover:text-brand hover:bg-muted/50"
@@ -1399,7 +1362,7 @@ export function DesignPanel() {
                                     Visible
                                 </button>
                                 <button
-                                    onClick={() => updateClasses("backface-", "backface-hidden")}
+                                    onClick={() => updateClasses("backfaceVisibility", "backface-hidden")}
                                     className={cn(
                                         "flex-1 flex items-center justify-center py-1 rounded-sm text-[10px] font-medium transition-all",
                                         "text-muted-foreground hover:text-brand hover:bg-muted/50"
