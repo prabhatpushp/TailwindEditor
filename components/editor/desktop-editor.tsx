@@ -2,10 +2,14 @@
 
 import { useEditorStore } from "@/lib/store";
 import { TopBar } from "@/components/editor/top-bar";
-import { LeftPanel } from "@/components/editor/left-panel";
-import { EditorPanel } from "@/components/editor/editor-panel";
-import { PropertiesPanel } from "@/components/editor/properties-panel";
+import dynamic from "next/dynamic";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+
+// Dynamically import heavy panels to keep them out of the initial JS bundle.
+// This significantly reduces LCP and TBT.
+const LeftPanel = dynamic(() => import("@/components/editor/left-panel").then((m) => m.LeftPanel), { ssr: false });
+const EditorPanel = dynamic(() => import("@/components/editor/editor-panel").then((m) => m.EditorPanel), { ssr: false });
+const PropertiesPanel = dynamic(() => import("@/components/editor/properties-panel").then((m) => m.PropertiesPanel), { ssr: false });
 
 export default function DesktopEditor() {
     const { isLeftPanelOpen, isPropertiesPanelOpen } = useEditorStore();

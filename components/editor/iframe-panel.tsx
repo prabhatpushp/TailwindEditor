@@ -394,7 +394,7 @@ const generateIframeScript = (mode: "edit" | "preview"): string => {
 </style>
 
 
-<script>
+<script type="module">
 (function() {
     const MODE = '${mode}';
     let currentHoveredElement = null;

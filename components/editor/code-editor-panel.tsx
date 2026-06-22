@@ -425,27 +425,6 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
             <div className={cn("flex-1 min-h-0 relative", isMinimized && "hidden", isVsDark ? "bg-[#1e1e1e]" : "bg-white")}>
                 <MonacoEditor
                     height="100%"
-                    loading={
-                        <div className="absolute inset-0 bg-[#1e1e1e] p-4 flex flex-col gap-2.5 overflow-hidden select-none z-10">
-                            {[
-                                { width: '30%', indent: 0 },
-                                { width: '45%', indent: '2rem' },
-                                { width: '65%', indent: '2rem' },
-                                { width: '25%', indent: '4rem' },
-                                { width: '55%', indent: '4rem' },
-                                { width: '40%', indent: '2rem' },
-                                { width: '20%', indent: 0 },
-                            ].map((line, i) => (
-                                <div key={i} className="flex items-center gap-6 w-full opacity-40">
-                                    <div className="w-4 text-right text-[#858585] text-[11px] font-mono opacity-50">{i + 1}</div>
-                                    <div 
-                                        className="h-2.5 bg-[#4d4d4d] rounded-sm animate-pulse" 
-                                        style={{ width: line.width, marginLeft: line.indent }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    }
                     language={settings.language}
                     theme={settings.theme}
                     value={displayCode}
