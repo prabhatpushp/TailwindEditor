@@ -4,7 +4,7 @@ import { cn, openInNewTab } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ToolbarButton } from "@/components/editor/toolbar-button";
 import { INITIAL_CODE } from "@/lib/constants";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPortal } from "react-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -2516,7 +2516,7 @@ export function IframePanel() {
     }, [blocksSearchQuery, blocksPopupTab]);
 
     return (
-        <div className="flex flex-col h-full bg-background overflow-hidden relative">
+        <div className="flex flex-col h-full bg-background" aria-label="Iframe Panel" role="region">
             {/* Toolbar */}
             <div className="h-10 border-b border-border flex items-center justify-between px-3 bg-card shrink-0 select-none z-20 relative">
                 {/* LEFT: Tabs */}
@@ -2530,8 +2530,6 @@ export function IframePanel() {
                                 Preview
                             </TabsTrigger>
                         </TabsList>
-                        <TabsContent value="edit" className="hidden" />
-                        <TabsContent value="preview" className="hidden" />
                     </Tabs>
 
                     {mode === "edit" && (
@@ -2575,7 +2573,7 @@ export function IframePanel() {
                                             <Flag className="w-3.5 h-3.5 text-orange-500" />
                                             Checkpoints
                                         </span>
-                                        <button onClick={() => setShowCheckpoints(false)} className="hover:text-foreground cursor-pointer text-muted-foreground">
+                                        <button onClick={() => setShowCheckpoints(false)} className="hover:text-foreground cursor-pointer text-muted-foreground" aria-label="Close Checkpoints">
                                             <X className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
@@ -2590,8 +2588,8 @@ export function IframePanel() {
                                         <button
                                             onClick={createCheckpoint}
                                             disabled={!newCheckpointTitle.trim()}
-                                            aria-label="Save checkpoint"
-                                            className="h-7 px-2.5 bg-orange-500 text-slate-900 rounded hover:bg-orange-600 disabled:opacity-50 text-xs font-semibold cursor-pointer"
+                                            className="h-7 px-2.5 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 text-xs font-medium cursor-pointer"
+                                            aria-label="Save Checkpoint"
                                         >
                                             <Save className="w-3.5 h-3.5" />
                                         </button>
@@ -2613,6 +2611,7 @@ export function IframePanel() {
                                                             onClick={() => restoreCheckpoint(cp)}
                                                             className="p-1 rounded hover:text-orange-500 cursor-pointer hover:bg-background text-muted-foreground"
                                                             title="Restore"
+                                                            aria-label="Restore Checkpoint"
                                                         >
                                                             <Undo2 className="w-3 h-3" />
                                                         </button>
@@ -2620,6 +2619,7 @@ export function IframePanel() {
                                                             onClick={() => deleteCheckpoint(cp.id)}
                                                             className="p-1 rounded hover:text-red-500 cursor-pointer hover:bg-background text-muted-foreground"
                                                             title="Delete"
+                                                            aria-label="Delete Checkpoint"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                         </button>
@@ -2641,7 +2641,7 @@ export function IframePanel() {
                     <ToolbarButton icon={Copy} tooltip="Copy to Clipboard" onClick={handleCopy} />
                     <ToolbarButton icon={RefreshCw} tooltip="Refresh Preview" onClick={handleRefresh} />
 
-                    <Button size="sm" className={cn("h-7 text-xs gap-1.5 ml-2 transition-all cursor-pointer font-semibold text-slate-900", isSaving ? "bg-green-600 hover:bg-green-700 text-white" : "")} onClick={handleSave}>
+                    <Button size="sm" className={cn("h-7 text-xs gap-1.5 ml-2 transition-all cursor-pointer", isSaving ? "bg-green-600 hover:bg-green-700" : "")} onClick={handleSave}>
                         {isSaving ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
                         {isSaving ? "Saved" : "Save"}
                     </Button>

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, Suspense } from "react";
 import { ResizableHandle, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Panel, type ImperativePanelHandle } from "react-resizable-panels";
 import { IframePanel } from "./iframe-panel";
@@ -75,11 +75,172 @@ export function EditorPanel() {
                             onCollapse={() => setIsMinimized(true)}
                             onExpand={() => setIsMinimized(false)}
                         >
-                            <CodeEditorPanel onToggleMaximize={toggleMaximize} onToggleMinimize={toggleMinimize} isMaximized={isMaximized} isMinimized={isMinimized} />
+                            <Suspense fallback={<CodeEditorSkeleton />}>
+                                <CodeEditorPanel onToggleMaximize={toggleMaximize} onToggleMinimize={toggleMinimize} isMaximized={isMaximized} isMinimized={isMinimized} />
+                            </Suspense>
                         </Panel>
                     </>
                 )}
             </ResizablePanelGroup>
+        </div>
+    );
+}
+
+function CodeEditorSkeleton() {
+    return (
+        <div className="flex flex-col h-full w-full bg-[#1e1e1e]">
+            {/* User Provided Header Skeleton */}
+            <div className="flex items-center justify-between px-3 py-2 border-b h-10 shrink-0 select-none transition-colors bg-[#1e1e1e] border-[#1e1e1e] text-[#cccccc]">
+                <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5 text-[#999999]">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-code w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <path d="m16 18 6-6-6-6"></path>
+                            <path d="m8 6-6 6 6 6"></path>
+                        </svg>
+                        Editor
+                    </span>
+                    <div className="h-4 w-px mx-1 bg-[#333333]"></div>
+                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer bg-[#3e3e3e] text-white border border-[#444]">html</button>
+                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer text-[#999999] hover:bg-[#2d2d2d]">JSX</button>
+                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer text-[#999999] hover:bg-[#2d2d2d]">TSX</button>
+                </div>
+                <div className="flex items-center gap-1 p-0.5 bg-[#1e1e1e]">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-sparkles w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path>
+                            <path d="M20 2v4"></path>
+                            <path d="M22 4h-4"></path>
+                            <circle cx="4" cy="20" r="2"></circle>
+                        </svg>
+                    </button>
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-moon w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
+                        </svg>
+                    </button>
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-map w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"></path>
+                            <path d="M15 5.764v15"></path>
+                            <path d="M9 3.236v15"></path>
+                        </svg>
+                    </button>
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-copy w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                        </svg>
+                    </button>
+                    <div className="w-px h-3 my-auto bg-[#333333]"></div>
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer bg-[#3e3e3e] text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-chevron-up w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <path d="m18 15-6-6-6 6"></path>
+                        </svg>
+                    </button>
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-maximize2 lucide-maximize-2 w-3.5 h-3.5"
+                            aria-hidden="true"
+                        >
+                            <path d="M15 3h6v6"></path>
+                            <path d="m21 3-7 7"></path>
+                            <path d="m3 21 7-7"></path>
+                            <path d="M9 21H3v-6"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            {/* Editor Body Skeleton */}
+            <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden">
+                <div className="flex items-center gap-2 text-muted-foreground opacity-50">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-sm">Loading Editor...</span>
+                </div>
+            </div>
         </div>
     );
 }

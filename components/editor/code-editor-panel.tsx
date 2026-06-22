@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import MonacoEditor, { useMonaco } from "@monaco-editor/react";
-import { emmetHTML } from "emmet-monaco-es";
 import { Code, Save, Sparkles, Moon, Sun, Map, Copy, Maximize2, Minimize2, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
@@ -48,10 +47,28 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
 
     // Initialize Monaco Enhancements
     useEffect(() => {
+        let isMounted = true;
+        let dispose: (() => void) | undefined;
+        
         if (monaco) {
-            // 1. Emmet
-            const disposeEmmet = emmetHTML(monaco);
+            import("emmet-monaco-es")
+                .then(({ emmetHTML }) => {
+                    // Prevent InstantiationService disposed error if Monaco unmounted during the dynamic import
+                    if (isMounted) {
+                        dispose = emmetHTML(monaco);
+                    }
+                })
+                .catch((err) => console.error("Failed to load emmet-monaco-es", err));
+        }
+        
+        return () => {
+            isMounted = false;
+            if (dispose) dispose();
+        };
+    }, [monaco]);
 
+    useEffect(() => {
+        if (monaco) {
             // 2. JSX/TSX Support Configuration
             const tsDefaults = (monaco.languages.typescript as any).typescriptDefaults;
             tsDefaults.setCompilerOptions({
@@ -90,7 +107,6 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
             });
 
             return () => {
-                disposeEmmet();
                 disposeCompletion.dispose();
             };
         }
