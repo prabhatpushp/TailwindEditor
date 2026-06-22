@@ -3,10 +3,15 @@
 import { useEditorStore } from "@/lib/store";
 import { EditorProvider } from "@/lib/editor-context";
 import { TopBar } from "@/components/editor/top-bar";
-import { LeftPanel } from "@/components/editor/left-panel";
-import { EditorPanel } from "@/components/editor/editor-panel";
-import { PropertiesPanel } from "@/components/editor/properties-panel";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import dynamic from "next/dynamic";
+
+// Dynamically import heavy panels to keep them out of the initial JS bundle.
+// This prevents Monaco Editor (~900 KiB), AI assist, and block data from
+// loading until after the shell (TopBar) has rendered.
+const LeftPanel = dynamic(() => import("@/components/editor/left-panel").then((m) => m.LeftPanel), { ssr: false });
+const EditorPanel = dynamic(() => import("@/components/editor/editor-panel").then((m) => m.EditorPanel), { ssr: false });
+const PropertiesPanel = dynamic(() => import("@/components/editor/properties-panel").then((m) => m.PropertiesPanel), { ssr: false });
 
 export default function DesktopEditor() {
     const { isLeftPanelOpen, isPropertiesPanelOpen } = useEditorStore();

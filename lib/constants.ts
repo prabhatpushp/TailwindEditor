@@ -376,7 +376,7 @@ export const INITIAL_CODE = `
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         <style>
             /* Hide Scrollbar for clean look */
             ::-webkit-scrollbar { width: 0px; background: transparent; }

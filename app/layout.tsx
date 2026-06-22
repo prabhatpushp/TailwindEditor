@@ -247,8 +247,8 @@ export default function RootLayout({
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
                 {/* Preconnect hints for external resources */}
-                <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
-                <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossOrigin="anonymous" />
+                <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+                <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
             </head>
             <body className="antialiased">
                 <ThemeProvider defaultTheme="light" attribute="class" disableTransitionOnChange>

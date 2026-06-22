@@ -110,7 +110,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     toggleLeftPanel: () => set((state) => ({ isLeftPanelOpen: !state.isLeftPanelOpen })),
     isPropertiesPanelOpen: true,
     togglePropertiesPanel: () => set((state) => ({ isPropertiesPanelOpen: !state.isPropertiesPanelOpen })),
-    isCodePanelOpen: true,
+    isCodePanelOpen: false,
     toggleCodePanel: () => set((state) => ({ isCodePanelOpen: !state.isCodePanelOpen })),
     // Selection state
     hoveredElement: null,
