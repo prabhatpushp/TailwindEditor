@@ -394,13 +394,13 @@ export function AiAssistPanel() {
                             </a>
                         </div>
                     ) : messages.length === 0 ? (
-                        <div className="flex-1 flex flex-col justify-center items-center gap-6 text-center select-none opacity-50">
+                        <div className="flex-1 flex flex-col justify-center items-center gap-6 text-center select-none text-muted-foreground">
                             <div className="space-y-2">
                                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-background shadow-sm border mb-2">
                                     <Sparkles className="h-6 w-6 text-foreground" />
                                 </div>
-                                <h2 className="font-semibold text-sm">How can I help you?</h2>
-                                <p className="text-xs text-foreground max-w-[200px] mx-auto">I can help you build, design, and debug.</p>
+                                <h2 className="font-semibold text-sm text-foreground">How can I help you?</h2>
+                                <p className="text-xs max-w-[200px] mx-auto">I can help you build, design, and debug.</p>
                             </div>
                         </div>
                     ) : (

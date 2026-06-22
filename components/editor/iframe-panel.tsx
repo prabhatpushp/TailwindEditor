@@ -4,7 +4,7 @@ import { cn, openInNewTab } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ToolbarButton } from "@/components/editor/toolbar-button";
 import { INITIAL_CODE } from "@/lib/constants";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { createPortal } from "react-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -2530,6 +2530,8 @@ export function IframePanel() {
                                 Preview
                             </TabsTrigger>
                         </TabsList>
+                        <TabsContent value="edit" className="hidden" forceMount />
+                        <TabsContent value="preview" className="hidden" forceMount />
                     </Tabs>
 
                     {mode === "edit" && (
@@ -2641,7 +2643,7 @@ export function IframePanel() {
                     <ToolbarButton icon={Copy} tooltip="Copy to Clipboard" onClick={handleCopy} />
                     <ToolbarButton icon={RefreshCw} tooltip="Refresh Preview" onClick={handleRefresh} />
 
-                    <Button size="sm" className={cn("h-7 text-xs gap-1.5 ml-2 transition-all cursor-pointer", isSaving ? "bg-green-600 hover:bg-green-700" : "")} onClick={handleSave}>
+                    <Button size="sm" className={cn("h-7 text-xs gap-1.5 ml-2 transition-all cursor-pointer text-white", isSaving ? "bg-green-600 hover:bg-green-700" : "bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900")} onClick={handleSave}>
                         {isSaving ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
                         {isSaving ? "Saved" : "Save"}
                     </Button>

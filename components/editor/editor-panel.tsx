@@ -1,10 +1,13 @@
-import { useState, useRef, Suspense } from "react";
+import { useState, useRef, Suspense, useEffect } from "react";
 import { ResizableHandle, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Panel, type ImperativePanelHandle } from "react-resizable-panels";
 import { IframePanel } from "./iframe-panel";
 import dynamic from "next/dynamic";
 
-const CodeEditorPanel = dynamic(() => import("./code-editor-panel").then((mod) => mod.CodeEditorPanel), { ssr: false });
+const CodeEditorPanel = dynamic(() => import("./code-editor-panel").then((mod) => mod.CodeEditorPanel), { 
+    ssr: false,
+    loading: () => <CodeEditorSkeleton />
+});
 import { useEditorStore } from "@/lib/store";
 
 export function EditorPanel() {
@@ -45,6 +48,14 @@ export function EditorPanel() {
         }
     };
 
+    const [isReadyToLoad, setIsReadyToLoad] = useState(false);
+
+    useEffect(() => {
+        // Delay loading the heavy code editor to prioritize LCP of the iframe and other UI
+        const timer = setTimeout(() => setIsReadyToLoad(true), 1500);
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
         <div className="h-full w-full bg-background overflow-hidden">
             <ResizablePanelGroup direction="vertical">
@@ -75,9 +86,11 @@ export function EditorPanel() {
                             onCollapse={() => setIsMinimized(true)}
                             onExpand={() => setIsMinimized(false)}
                         >
-                            <Suspense fallback={<CodeEditorSkeleton />}>
+                            {isReadyToLoad ? (
                                 <CodeEditorPanel onToggleMaximize={toggleMaximize} onToggleMinimize={toggleMinimize} isMaximized={isMaximized} isMinimized={isMinimized} />
-                            </Suspense>
+                            ) : (
+                                <CodeEditorSkeleton />
+                            )}
                         </Panel>
                     </>
                 )}
@@ -232,14 +245,24 @@ function CodeEditorSkeleton() {
                 </div>
             </div>
             {/* Editor Body Skeleton */}
-            <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden">
-                <div className="flex items-center gap-2 text-muted-foreground opacity-50">
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span className="text-sm">Loading Editor...</span>
-                </div>
+            <div className="flex-1 w-full bg-[#1e1e1e] p-4 flex flex-col gap-2.5 overflow-hidden select-none">
+                {[
+                    { width: '30%', indent: 0 },
+                    { width: '45%', indent: '2rem' },
+                    { width: '65%', indent: '2rem' },
+                    { width: '25%', indent: '4rem' },
+                    { width: '55%', indent: '4rem' },
+                    { width: '40%', indent: '2rem' },
+                    { width: '20%', indent: 0 },
+                ].map((line, i) => (
+                    <div key={i} className="flex items-center gap-6 w-full opacity-40">
+                        <div className="w-4 text-right text-[#858585] text-[11px] font-mono opacity-50">{i + 1}</div>
+                        <div 
+                            className="h-2.5 bg-[#4d4d4d] rounded-sm animate-pulse" 
+                            style={{ width: line.width, marginLeft: line.indent }}
+                        />
+                    </div>
+                ))}
             </div>
         </div>
     );
