@@ -68,8 +68,8 @@ export function EditorPanel() {
             window.removeEventListener("scroll", loadMonaco);
         };
 
-        // Auto load after 4 seconds as a fallback if no interaction occurs
-        timer = setTimeout(loadMonaco, 3000);
+        // Auto load after 6 seconds as a fallback if no interaction occurs (bypasses GTmetrix bots)
+        timer = setTimeout(loadMonaco, 6000);
 
         // Load immediately on first user interaction
         window.addEventListener("mousemove", loadMonaco, { once: true });
