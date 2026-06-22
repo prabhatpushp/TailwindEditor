@@ -378,7 +378,7 @@ export function AiAssistPanel() {
                             <Button
                                 size="sm"
                                 onClick={openSettingsDialog}
-                                className="gap-2"
+                                className="gap-2 text-slate-900 font-semibold"
                             >
                                 <Settings className="w-3.5 h-3.5" />
                                 Open Settings

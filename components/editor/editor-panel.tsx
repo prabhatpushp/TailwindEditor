@@ -2,8 +2,10 @@ import { useState, useRef } from "react";
 import { ResizableHandle, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Panel, type ImperativePanelHandle } from "react-resizable-panels";
 import { IframePanel } from "./iframe-panel";
-import { CodeEditorPanel } from "./code-editor-panel";
+import dynamic from "next/dynamic";
 import { INITIAL_CODE } from "@/lib/constants";
+
+const CodeEditorPanel = dynamic(() => import("./code-editor-panel").then((mod) => mod.CodeEditorPanel), { ssr: false });
 import { useEditorStore } from "@/lib/store";
 
 export function EditorPanel() {
