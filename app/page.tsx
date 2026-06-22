@@ -1,24 +1,49 @@
 "use client";
 
-import { useEditorStore } from "@/lib/store";
-import { EditorProvider } from "@/lib/editor-context";
-import { TopBar } from "@/components/editor/top-bar";
-import { LeftPanel } from "@/components/editor/left-panel";
-import { EditorPanel } from "@/components/editor/editor-panel";
-import { PropertiesPanel } from "@/components/editor/properties-panel";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Monitor } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+
+// Dynamically import the desktop editor so it doesn't load on mobile
+const DesktopEditor = dynamic(() => import("@/components/editor/desktop-editor"), {
+    ssr: false,
+});
 
 export default function Page() {
-    const { isLeftPanelOpen, isPropertiesPanelOpen } = useEditorStore();
+    const [isMounted, setIsMounted] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(true);
 
-    return (
-        <EditorProvider>
-            {/* Visually-hidden H1 for SEO — crawlers and screen readers see it, users don't */}
-            <h1 className="sr-only">Tailwind Editor — AI-Powered Visual Tailwind CSS Editor</h1>
+    useEffect(() => {
+        setIsMounted(true);
+        const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+        checkIsDesktop();
+        window.addEventListener("resize", checkIsDesktop);
 
-            {/* Mobile Block */}
-            <main className="flex lg:hidden h-screen w-screen flex-col items-center justify-center bg-background p-6 text-center relative overflow-hidden" aria-label="Mobile notice">
+        // Suppress Monaco Editor cancelation unhandled promise rejections
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            if (event.reason && event.reason.type === "cancelation" && event.reason.msg === "operation is manually canceled") {
+                event.preventDefault();
+            }
+        };
+        window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
+        return () => {
+            window.removeEventListener("resize", checkIsDesktop);
+            window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+        };
+    }, []);
+
+    // During SSR and initial mount, we render a placeholder to prevent hydration mismatch
+    if (!isMounted) {
+        return <div className="h-screen w-screen bg-background" aria-hidden="true" />;
+    }
+
+    if (!isDesktop) {
+        return (
+            <main className="flex h-screen w-screen flex-col items-center justify-center bg-background p-6 text-center relative overflow-hidden" aria-label="Mobile notice">
+                {/* Visually-hidden H1 for SEO */}
+                <h1 className="sr-only">Tailwind Editor — AI-Powered Visual Tailwind CSS Editor</h1>
+
                 {/* Background ambient gradients */}
                 <div className="absolute top-[20%] left-[20%] w-72 h-72 bg-primary/20 rounded-full blur-[80px]" aria-hidden="true" />
                 <div className="absolute bottom-[20%] right-[20%] w-72 h-72 bg-blue-500/20 rounded-full blur-[80px]" aria-hidden="true" />
@@ -34,42 +59,14 @@ export default function Page() {
                     </p>
                 </section>
             </main>
+        );
+    }
 
-            {/* Desktop Layout */}
-            <main className="hidden lg:flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground relative" aria-label="Tailwind Editor workspace">
-                <header className="shrink-0">
-                    <TopBar />
-                </header>
-                <div className="flex-1 overflow-hidden">
-                    <ResizablePanelGroup direction="horizontal">
-                        {isLeftPanelOpen && (
-                            <>
-                                <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="min-w-[280px] border-r border-border">
-                                    <aside aria-label="Component blocks panel" className="h-full">
-                                        <LeftPanel />
-                                    </aside>
-                                </ResizablePanel>
-                                <ResizableHandle />
-                            </>
-                        )}
-                        <ResizablePanel defaultSize={65} minSize={30}>
-                            <section aria-label="Visual editor canvas" className="h-full">
-                                <EditorPanel />
-                            </section>
-                        </ResizablePanel>
-                        {isPropertiesPanelOpen && (
-                            <>
-                                <ResizableHandle />
-                                <ResizablePanel defaultSize={15} minSize={15} maxSize={40} className="min-w-[280px] border-l border-border">
-                                    <aside aria-label="Properties inspector panel" className="h-full">
-                                        <PropertiesPanel />
-                                    </aside>
-                                </ResizablePanel>
-                            </>
-                        )}
-                    </ResizablePanelGroup>
-                </div>
-            </main>
-        </EditorProvider>
+    return (
+        <>
+            {/* Visually-hidden H1 for SEO */}
+            <h1 className="sr-only">Tailwind Editor — AI-Powered Visual Tailwind CSS Editor</h1>
+            <DesktopEditor />
+        </>
     );
 }

@@ -356,7 +356,7 @@ export function AiAssistPanel() {
         <div className="flex flex-col h-full bg-muted/10 relative overflow-hidden">
             {messages.length > 0 && (
                 <div className="absolute top-2 right-2 z-10">
-                    <Button variant="ghost" size="icon-sm" onClick={handleClearChat} className="h-6 w-6 opacity-50 hover:opacity-100">
+                    <Button variant="ghost" size="icon-sm" onClick={handleClearChat} className="h-6 w-6 opacity-50 hover:opacity-100" aria-label="Clear chat">
                         <Eraser className="w-3 h-3" />
                     </Button>
                 </div>
@@ -370,8 +370,8 @@ export function AiAssistPanel() {
                                 <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/80 border border-border mb-2">
                                     <KeyRound className="h-7 w-7 text-muted-foreground" />
                                 </div>
-                                <h3 className="font-semibold text-sm">Set Up Your API Key</h3>
-                                <p className="text-xs text-muted-foreground max-w-[220px] mx-auto leading-relaxed">
+                                <h2 className="font-semibold text-sm">Set Up Your API Key</h2>
+                                <p className="text-xs text-foreground max-w-[220px] mx-auto leading-relaxed">
                                     Bring your own Google Gemini API key to unlock AI features. Your key stays encrypted in your browser — never sent to our servers.
                                 </p>
                             </div>
@@ -399,8 +399,8 @@ export function AiAssistPanel() {
                                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-background shadow-sm border mb-2">
                                     <Sparkles className="h-6 w-6 text-foreground" />
                                 </div>
-                                <h3 className="font-semibold text-sm">How can I help you?</h3>
-                                <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">I can help you build, design, and debug.</p>
+                                <h2 className="font-semibold text-sm">How can I help you?</h2>
+                                <p className="text-xs text-foreground max-w-[200px] mx-auto">I can help you build, design, and debug.</p>
                             </div>
                         </div>
                     ) : (
@@ -477,7 +477,7 @@ export function AiAssistPanel() {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <DropdownMenuTrigger asChild>
-                                                <InputGroupButton variant="ghost" size="icon-sm" className="rounded-lg h-7 w-7 text-muted-foreground hover:text-foreground">
+                                                <InputGroupButton variant="ghost" size="icon-sm" className="rounded-lg h-7 w-7 text-muted-foreground hover:text-foreground" aria-label="Add files">
                                                     <Plus className="w-4 h-4" />
                                                 </InputGroupButton>
                                             </DropdownMenuTrigger>
@@ -536,7 +536,7 @@ export function AiAssistPanel() {
 
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <InputGroupButton variant="ghost" size="icon-sm" onClick={openSettingsDialog} className="rounded-lg h-7 w-7 text-muted-foreground hover:text-foreground">
+                                        <InputGroupButton variant="ghost" size="icon-sm" onClick={openSettingsDialog} className="rounded-lg h-7 w-7 text-muted-foreground hover:text-foreground" aria-label="AI Settings">
                                             <Settings className="w-4 h-4" />
                                         </InputGroupButton>
                                     </TooltipTrigger>
@@ -545,14 +545,14 @@ export function AiAssistPanel() {
 
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <InputGroupButton variant="ghost" size="icon-sm" onClick={toggleRecording} className="ml-auto rounded-lg h-7 w-7 text-muted-foreground hover:text-foreground">
+                                        <InputGroupButton variant="ghost" size="icon-sm" onClick={toggleRecording} className="ml-auto rounded-lg h-7 w-7 text-muted-foreground hover:text-foreground" aria-label="Dictate">
                                             <AudioLines className={cn("w-4 h-4", isRecording && "text-red-500 animate-pulse")} />
                                         </InputGroupButton>
                                     </TooltipTrigger>
                                     <TooltipContent>Dictate</TooltipContent>
                                 </Tooltip>
 
-                                <InputGroupButton size="icon-sm" variant="default" className="rounded-lg h-7 w-7" type="submit" disabled={!canSubmit}>
+                                <InputGroupButton size="icon-sm" variant="default" className="rounded-lg h-7 w-7" type="submit" disabled={!canSubmit} aria-label="Send message">
                                     <ArrowUp className="w-4 h-4" />
                                 </InputGroupButton>
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} multiple />

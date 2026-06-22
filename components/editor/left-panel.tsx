@@ -20,6 +20,7 @@ export function LeftPanel() {
                         <TooltipTrigger asChild>
                             <button
                                 onClick={() => setActiveTab("ai")}
+                                aria-label="AI Assistant"
                                 className={cn(
                                     "flex items-center justify-center w-9 h-9 rounded-lg transition-all cursor-pointer",
                                     activeTab === "ai" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -35,6 +36,7 @@ export function LeftPanel() {
                         <TooltipTrigger asChild>
                             <button
                                 onClick={() => setActiveTab("blocks")}
+                                aria-label="Blocks and Templates"
                                 className={cn(
                                     "flex items-center justify-center w-9 h-9 rounded-lg transition-all cursor-pointer",
                                     activeTab === "blocks" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"

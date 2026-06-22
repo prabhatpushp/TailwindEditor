@@ -61,6 +61,7 @@ function TopBarButton({ icon: Icon, tooltip, isActive, disabled, variant = "ghos
                 <Button
                     variant={variant}
                     size="icon"
+                    aria-label={tooltip}
                     className={cn(
                         "h-8 w-8",
                         isActive && "bg-primary/10 text-primary border-primary/50 ring-1 ring-primary/30",
@@ -161,7 +162,7 @@ export function TopBar() {
                             <Tooltip disableHoverableContent>
                                 <TooltipTrigger asChild>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer">
+                                        <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer" aria-label="Toggle Panels">
                                             <Columns3 className="w-4 h-4" />
                                         </Button>
                                     </DropdownMenuTrigger>

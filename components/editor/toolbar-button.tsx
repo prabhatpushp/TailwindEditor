@@ -18,7 +18,7 @@ export function ToolbarButton({ icon: Icon, tooltip, onClick, isActive, disabled
         <TooltipProvider>
             <Tooltip delayDuration={0} disableHoverableContent>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn("h-7 w-7 cursor-pointer", isActive && "bg-muted text-foreground", className)} onClick={onClick} disabled={disabled}>
+                    <Button variant="ghost" size="icon" className={cn("h-7 w-7 cursor-pointer", isActive && "bg-muted text-foreground", className)} onClick={onClick} disabled={disabled} aria-label={tooltip}>
                         <Icon className={cn("w-3.5 h-3.5", iconClassName)} />
                     </Button>
                 </TooltipTrigger>

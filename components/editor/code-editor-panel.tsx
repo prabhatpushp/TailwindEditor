@@ -339,7 +339,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={handleFormat} className={btnClass(false)}>
+                                <button onClick={handleFormat} className={btnClass(false)} aria-label="Format Code">
                                     <Sparkles className="w-3.5 h-3.5" />
                                 </button>
                             </TooltipTrigger>
@@ -350,7 +350,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={() => setSettings((p) => ({ ...p, theme: p.theme === "light" ? "vs-dark" : "light" }))} className={btnClass(false)}>
+                                <button onClick={() => setSettings((p) => ({ ...p, theme: p.theme === "light" ? "vs-dark" : "light" }))} className={btnClass(false)} aria-label="Toggle Theme">
                                     {isVsDark ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
                                 </button>
                             </TooltipTrigger>
@@ -361,7 +361,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={() => setSettings((p) => ({ ...p, minimap: !p.minimap }))} className={btnClass(settings.minimap)}>
+                                <button onClick={() => setSettings((p) => ({ ...p, minimap: !p.minimap }))} className={btnClass(settings.minimap)} aria-label="Toggle Minimap">
                                     <Map className="w-3.5 h-3.5" />
                                 </button>
                             </TooltipTrigger>
@@ -372,7 +372,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={handleCopy} className={btnClass(false)}>
+                                <button onClick={handleCopy} className={btnClass(false)} aria-label="Copy Code">
                                     <Copy className="w-3.5 h-3.5" />
                                 </button>
                             </TooltipTrigger>
@@ -385,7 +385,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onToggleMinimize} className={btnClass(isMinimized)}>
+                                <button onClick={onToggleMinimize} className={btnClass(isMinimized)} aria-label={isMinimized ? "Expand Panel" : "Minimize Panel"}>
                                     {isMinimized ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                 </button>
                             </TooltipTrigger>
@@ -396,7 +396,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button onClick={onToggleMaximize} className={btnClass(isMaximized)}>
+                                <button onClick={onToggleMaximize} className={btnClass(isMaximized)} aria-label={isMaximized ? "Restore View" : "Maximize Editor"}>
                                     {isMaximized ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                                 </button>
                             </TooltipTrigger>
