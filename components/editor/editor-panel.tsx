@@ -149,12 +149,12 @@ function CodeEditorSkeleton() {
                         Editor
                     </span>
                     <div className="h-4 w-px mx-1 bg-[#333333]"></div>
-                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer bg-[#3e3e3e] text-white border border-[#444]">html</button>
-                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer text-[#999999] hover:bg-[#2d2d2d]">JSX</button>
-                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer text-[#999999] hover:bg-[#2d2d2d]">TSX</button>
+                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer bg-[#3e3e3e] text-white border border-[#444]" aria-label="Switch to html">html</button>
+                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer text-[#999999] hover:bg-[#2d2d2d]" aria-label="Switch to JSX">JSX</button>
+                    <button className="text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer text-[#999999] hover:bg-[#2d2d2d]" aria-label="Switch to TSX">TSX</button>
                 </div>
                 <div className="flex items-center gap-1 p-0.5 bg-[#1e1e1e]">
-                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white" aria-label="Format Code">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -174,7 +174,7 @@ function CodeEditorSkeleton() {
                             <circle cx="4" cy="20" r="2"></circle>
                         </svg>
                     </button>
-                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white" aria-label="Toggle Theme">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -191,7 +191,7 @@ function CodeEditorSkeleton() {
                             <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
                         </svg>
                     </button>
-                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white" aria-label="Toggle Minimap">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -210,7 +210,7 @@ function CodeEditorSkeleton() {
                             <path d="M9 3.236v15"></path>
                         </svg>
                     </button>
-                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white" aria-label="Copy Code">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -229,7 +229,7 @@ function CodeEditorSkeleton() {
                         </svg>
                     </button>
                     <div className="w-px h-3 my-auto bg-[#333333]"></div>
-                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer bg-[#3e3e3e] text-white">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer bg-[#3e3e3e] text-white" aria-label="Expand Panel">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -246,7 +246,7 @@ function CodeEditorSkeleton() {
                             <path d="m18 15-6-6-6 6"></path>
                         </svg>
                     </button>
-                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white">
+                    <button className="p-1.5 rounded transition-colors flex items-center justify-center h-7 w-7 cursor-pointer text-[#cccccc] hover:bg-[#2d2d2d] hover:text-white" aria-label="Maximize Editor">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"

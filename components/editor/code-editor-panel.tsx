@@ -335,6 +335,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                         <button
                             key={lang}
                             onClick={() => setSettings((s) => ({ ...s, language: lang }))}
+                            aria-label={`Switch to ${lang === "javascript" ? "JSX" : lang === "typescript" ? "TSX" : lang}`}
                             className={cn(
                                 "text-[10px] uppercase font-medium px-2 py-0.5 rounded transition-colors cursor-pointer",
                                 settings.language === lang
@@ -442,6 +443,7 @@ export function CodeEditorPanel({ onToggleMaximize, onToggleMinimize, isMaximize
                         automaticLayout: true,
                         padding: { top: 10, bottom: 10 },
                         fontFamily: "Geist Mono, Droid Sans Mono, monospace",
+                        ariaLabel: "Code Editor",
                     }}
                 />
             </div>
